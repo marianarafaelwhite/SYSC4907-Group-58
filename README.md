@@ -62,6 +62,7 @@ h1 xterm &
 * IoT emulation script to emulate hardware interaction
 * Program for destination host to send to cloud/text/SMS, etc.
 * Improve logging
+* Fix directory structure
 * Testing
 * UML diagrams
 

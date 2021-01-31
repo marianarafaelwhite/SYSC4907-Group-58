@@ -36,6 +36,12 @@ sudo reboot
 ## Usage
 1. Run the script to read the hardware & send to Linux receiver
 ```
-cd app/
+cd iot/
 ./hardware.py --verbose -ip <ip_address> -p <port>
+```
+
+1. Or, run the emulator script
+```
+cd iot/
+./hardware_emulator.py --verbose -ip <ip_address> -p <port>
 ```

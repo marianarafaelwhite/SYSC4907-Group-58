@@ -23,9 +23,11 @@ from time import sleep
 import argparse
 import logging
 import constants as c
+import iot_sender
 
 
-def run_hardware(polling_time, humidity_only=False, co2_only=False):
+def run_hardware(polling_time, humidity_only=False,
+                 co2_only=False, address=None):
     """
     Create humidity & CO2 sensor objects and
     periodically read input from them
@@ -38,6 +40,8 @@ def run_hardware(polling_time, humidity_only=False, co2_only=False):
         True if only humidity sensor is to run
     co2_only : bool
         True if only CO2 sensor is to run
+    address : tuple
+        (str, int) for the IP address & port of server
     """
     logging.info('Harware starting. CTRL-C to exit')
     try:
@@ -61,15 +65,25 @@ def run_hardware(polling_time, humidity_only=False, co2_only=False):
             sleep(startup_time_secs)
 
         while True:
+            # Check humidity sensor levels
             if not co2_only:
                 humidity_level = sense_hat.get_humidity()
                 msg = 'Humidity level: {} %'.format(humidity_level)
                 logging.debug(msg)
 
+                # Send to network
+                if addr:
+                    iot_sender.send_humidity(addr, humidity_level)
+
+            # Check CO2 sensor levels
             if not humidity_only:
                 co2_level = co2_sensor.eco2
                 msg = 'CO2 concentration level: {} ppm'.format(co2_level)
                 logging.debug(msg)
+
+                # Send to network
+                if addr:
+                    iot_sender.send_co2(addr, co2_level)
 
             sleep(polling_time)
 
@@ -114,6 +128,18 @@ def parse_args():
                         type=float,
                         help='Time between hardware readings')
 
+    parser.add_argument('-ip',
+                        '--ip_address',
+                        metavar='<local IP address>',
+                        help='Example: 10.0.0.200')
+
+    parser.add_argument('-p',
+                        '--port',
+                        metavar='<port number>',
+                        default=7777,
+                        type=int,
+                        help='Default: 7777')
+
     args = parser.parse_args()
     return args
 
@@ -123,9 +149,13 @@ if __name__ == '__main__':
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format=c.LOGGING_FORMAT, level=logging_level)
 
+    addr = None
+    if args.ip_address:
+        addr = (args.ip_address, args.port)
+
     if args.hardware == 'humidity':
-        run_hardware(args.time, humidity_only=True)
+        run_hardware(args.time, humidity_only=True, address=addr)
     elif args.hardware == 'co2':
-        run_hardware(args.time, co2_only=True)
+        run_hardware(args.time, co2_only=True, address=addr)
     else:
-        run_hardware(args.time)
+        run_hardware(args.time, address=addr)

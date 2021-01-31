@@ -34,8 +34,8 @@ sudo reboot
 ```
 
 ## Usage
-1. Run the script to read the hardware
+1. Run the script to read the hardware & send to Linux receiver
 ```
 cd app/
-./hardware.py --verbose
+./hardware.py --verbose -ip <ip_address> -p <port>
 ```

@@ -1,6 +1,5 @@
 import argparse
 import socket
-import time
 
 UDP_PORT = 7777
 MESSAGE = "{\"type\":\"co2\",value:21}"

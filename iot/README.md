@@ -45,3 +45,15 @@ cd iot/
 cd iot/
 ./hardware_emulator.py --verbose -ip <ip_address> -p <port>
 ```
+
+1. On destination server node, process data received (write to cloud, email, etc.):
+```
+cd iot
+./process_data.py --verbose
+```
+
+1. On any node, retrieve cloud records and store in local SQL db
+```
+cd iot
+./cloud_reader.py --verbose
+```

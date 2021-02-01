@@ -11,8 +11,7 @@ Notes
 import argparse
 import socket as s
 import time
-
-DELAY_SECS = 0.5
+from constants import THINGSPEAK_DELAY_SECS
 
 
 def send(address, message):
@@ -27,7 +26,7 @@ def send(address, message):
     """
     with s.socket(s.AF_INET, s.SOCK_DGRAM) as sock:
         sock.sendto(bytes(message, 'utf-8'), address)
-    time.sleep(DELAY_SECS)
+    time.sleep(THINGSPEAK_DELAY_SECS)
 
 
 def send_humidity(address, humidity_level):

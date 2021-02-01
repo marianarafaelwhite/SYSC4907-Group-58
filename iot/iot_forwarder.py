@@ -1,6 +1,5 @@
 import argparse
 import socket
-import time
 
 IP = "10.211.55.4"
 UDP_PORT = 7777

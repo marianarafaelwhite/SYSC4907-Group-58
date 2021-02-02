@@ -11,6 +11,7 @@ Notes
 import argparse
 import socket as s
 import time
+import json
 from constants import THINGSPEAK_DELAY_SECS
 
 
@@ -39,9 +40,11 @@ def send_humidity(address, humidity_level):
         Address as (str, int) (IP address, UDP port)
     humidity_level : float
     """
-    humidity_dict = {'type': 'humidity',
-                     'value': humidity_level}
-    message = str(humidity_dict)
+    humidity_dict = {}
+    humidity_dict['type'] = 'humidity'
+    humidity_dict['value'] = humidity_level
+
+    message = json.dumps(humidity_dict)
     send(address, message)
 
 
@@ -55,9 +58,11 @@ def send_co2(address, co2_level):
         Address as (str, int) (IP address, UDP port)
     co2_level : float
     """
-    co2_dict = {'type': 'co2',
-                'value': co2_level}
-    message = str(co2_dict)
+    co2_dict = {}
+    co2_dict['type'] = 'co2'
+    co2_dict['value'] = co2_level
+
+    message = json.dumps(co2_dict)
     send(address, message)
 
 

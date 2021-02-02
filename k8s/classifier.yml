@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: classifier
+  name: classifier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: classifier
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: classifier
+    spec:
+      containers:
+      - image: sysc4907_group58/classifier
+        name: classifier
+        imagePullPolicy: Never
+        resources: {}
+        ports:
+          - containerPort: 7777
+status: {}

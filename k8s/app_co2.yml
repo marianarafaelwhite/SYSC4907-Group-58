@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: app-co2
+  name: app-co2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-co2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: app-co2
+    spec:
+      containers:
+      - image: sysc4907_group58/server
+        name: app-co2
+        imagePullPolicy: Never
+        resources: {}
+        ports:
+          - containerPort: 7777
+status: {}

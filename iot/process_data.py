@@ -17,6 +17,10 @@ import constants as c
 import logging
 import argparse
 
+# logging  
+LOG = "/tmp/logfile.log"                                                     
+logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)  
+
 
 def poll_data(port):
     """

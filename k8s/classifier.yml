@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: classifier
+  labels:
+    app: classifier
+spec:
+  type: NodePort
+  ports:
+  - port: 7777
+    protocol: UDP
+    nodePort: 32388
+  selector:
+    app: classifier
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

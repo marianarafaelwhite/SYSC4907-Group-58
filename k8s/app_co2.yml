@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-co2
+  labels:
+    app: app-co2
+spec:
+  type: ClusterIP
+  ports:
+  - port: 7777
+    protocol: UDP
+  selector:
+    app: app-co2
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

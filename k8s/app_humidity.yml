@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-humidity
+  labels:
+    app: app-humidity
+spec:
+  type: ClusterIP
+  ports:
+  - port: 7777
+    protocol: UDP
+  selector:
+    app: app-humidity
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

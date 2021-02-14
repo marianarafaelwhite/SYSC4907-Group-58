@@ -57,3 +57,8 @@ cd iot
 cd iot
 ./cloud_reader.py --verbose
 ```
+
+1. Optional: for step 3, add try the following to send a notification
+```
+./process_data.py --verbose --address <email_address>
+```

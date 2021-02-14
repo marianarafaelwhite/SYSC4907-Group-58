@@ -14,107 +14,123 @@ Notes
 from thingspeak import write_to_channel
 import socket as s
 import constants as c
+import iot_email
 import logging
 import argparse
 
-# logging  
-LOG = "/tmp/logfile.log"                                                     
-logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)  
+# logging
+LOG = "/tmp/logfile.log"
+logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)
 
 
-def poll_data(port):
+class DataPoller:
     """
-    Waits to receive data from network
-
-    TODO: accept data from network topology
-          for now, using sockets
-
-    Parameters
-    ----------
-    port : int
+    Class to poll data
     """
-    with s.socket(s.AF_INET, s.SOCK_DGRAM) as sock:
-        sock.bind(('', port))
-        while True:
-            message, address = sock.recvfrom(1024)
-            logging.debug('Received: {}'.format(message))
-            process_data(message)
 
+    def __init__(self, port, address):
+        """
+        Parameters
+        ----------
+        port : int
+        address : list
+        """
+        self.__port = port
+        self.__recipients = address
 
-def process_data(message):
-    """
-    Processes data by uploading to cloud
+    def poll_data(self):
+        """
+        Waits to receive data from network
+        """
+        with s.socket(s.AF_INET, s.SOCK_DGRAM) as sock:
+            sock.bind(('', self.__port))
+            while True:
+                message, address = sock.recvfrom(1024)
+                logging.debug('Received: {}'.format(message))
+                self.process_data(message)
 
-    Parameters
-    ----------
-    message : bytes
-    """
-    link = 'https://api.thingspeak.com/channels/{}/feeds.json?'.format(
-        c.AIR_QUALITY_FEED)
-    fields = {}
-    key = c.AIR_QUALITY_WRITE_KEY
+    def process_data(self, message):
+        """
+        Processes data by uploading to cloud
 
-    # Retrieve dict from message
-    message_dict = eval(message.decode())
-    type_data = message_dict.get('type', None)
-    value_data = message_dict.get('value', None)
+        Parameters
+        ----------
+        message : bytes
+        """
+        link = 'https://api.thingspeak.com/channels/{}/feeds.json?'.format(
+            c.AIR_QUALITY_FEED)
+        fields = {}
+        key = c.AIR_QUALITY_WRITE_KEY
 
-    # Unrecognized message, ignore
-    if not type_data or not value_data:
-        logging.error('Unrecognized message. Ignoring')
-        return
+        # Retrieve dict from message
+        message_dict = eval(message.decode())
+        type_data = message_dict.get('type', None)
+        value_data = message_dict.get('value', None)
 
-    # Assembly humidity record
-    if type_data == 'humidity':
-        humidity_processing(value_data)
-        fields = {c.HUMIDITY_FIELD: value_data}
+        # Unrecognized message, ignore
+        if not type_data or not value_data:
+            logging.error('Unrecognized message. Ignoring')
+            return
 
-    # Aseembly co2 record
-    elif type_data == 'co2':
-        co2_processing(value_data)
-        fields = {c.CO2_FIELD: value_data}
+        # Assembly humidity record
+        if type_data == 'humidity':
+            self.humidity_processing(value_data)
+            fields = {c.HUMIDITY_FIELD: value_data}
 
-    # Unrecognized type, ignore
-    else:
-        logging.error('Unrecognized message. Ignoring')
-        return
+        # Aseembly co2 record
+        elif type_data == 'co2':
+            self.co2_processing(value_data)
+            fields = {c.CO2_FIELD: value_data}
 
-    # Data received that should be recorded in the cloud
-    logging.debug('Writing to cloud')
-    status, reason = write_to_channel(key, fields)
+        # Unrecognized type, ignore
+        else:
+            logging.error('Unrecognized message. Ignoring')
+            return
 
-    # Check status
-    if status == c.GOOD_STATUS:
-        logging.debug('Write to cloud was succesful')
-        logging.debug('View results here {}'.format(link))
-    else:
-        logging.error('Write to cloud was unsuccessful: {}'.format(reason))
+        # Data received that should be recorded in the cloud
+        logging.debug('Writing to cloud')
+        status, reason = write_to_channel(key, fields)
 
+        # Check status
+        if status == c.GOOD_STATUS:
+            logging.debug('Write to cloud was succesful')
+            logging.debug('View results here {}'.format(link))
+        else:
+            logging.error('Write to cloud was unsuccessful: {}'.format(reason))
 
-def humidity_processing(value):
-    """
-    Further process humidity data
+    def humidity_processing(self, value):
+        """
+        Further process humidity data
 
-    Parameters
-    ----------
-    value : float
-    """
-    if value < c.HUMIDITY_THRESHOLD:
-        logging.info('Low humidity! Alert user')
-        # TODO: Add notification here
+        Parameters
+        ----------
+        value : float
+        """
+        if value < c.HUMIDITY_THRESHOLD:
+            logging.info('Low humidity! Alert user')
 
+            # Send email to defined recipients
+            recipients = self.__recipients
+            subject = c.HUMIDITY_SUBJECT
+            content = c.HUMIDITY_CONTENT.format(humidity=value)
+            iot_email.send_email(recipients, subject, content)
 
-def co2_processing(value):
-    """
-    Further process CO2 data
+    def co2_processing(self, value):
+        """
+        Further process CO2 data
 
-    Parameters
-    ----------
-    value : int
-    """
-    if value > c.CO2_THRESHOLD:
-        logging.info('High CO2 Concentration level! Alert user')
-        # TODO: Add notification here
+        Parameters
+        ----------
+        value : int
+        """
+        if value > c.CO2_THRESHOLD:
+            logging.info('High CO2 Concentration level! Alert user')
+
+            # Send email to defined recipients
+            recipients = self.__recipients
+            subject = c.CO2_SUBJECT
+            content = c.CO2_CONTENT.format(co2=value)
+            iot_email.send_email(recipients, subject, content)
 
 
 def parse_args():
@@ -137,6 +153,12 @@ def parse_args():
                         type=int,
                         help='Default: 7777')
 
+    parser.add_argument('-a',
+                        '--address',
+                        metavar='<email_address>',
+                        nargs='*',
+                        help='Email address(es) to receive notifications')
+
     args = parser.parse_args()
     return args
 
@@ -145,4 +167,10 @@ if __name__ == '__main__':
     args = parse_args()
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format=c.LOGGING_FORMAT, level=logging_level)
-    poll_data(args.port)
+
+    recipients = []
+    if args.address:
+        recipients = args.address
+
+    poller = DataPoller(args.port, args.address)
+    poller.poll_data()

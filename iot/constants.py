@@ -37,3 +37,18 @@ HUMIDITY_DB_FILE = 'humidity.db'
 HUMIDITY_TABLE = 'humidity'
 CO2_DB_FILE = 'co2.db'
 CO2_TABLE = 'co2'
+
+# Email related
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587
+GMAIL_PASSWORD = 'MC&Dx78K'
+GMAIL_USERNAME = 'covid.smart.home.alert@gmail.com'
+CO2_SUBJECT = 'COVID Risk: High CO2 levels'
+CO2_CONTENT = 'CO2 is {co2} ppm which is low.\n' + \
+              'Take action to prevent the spread of COVID19'
+HUMIDITY_SUBJECT = 'COVID Risk: Low humidity levels'
+HUMIDITY_CONTENT = 'Humidity is {humidity} % which is low.\n' + \
+                   'Take action to prevent the spread of COVID19'
+
+# TODO: Find a better way to register individuals for notifications
+RECIPIENTS = ['marianarafaelwhite@cmail.carleton.ca']

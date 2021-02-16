@@ -18,12 +18,13 @@ import smtplib
 import constants as c
 
 
-def send_email(recipients, subject, content):
+def send_email(sender, recipients, subject, content):
     """
     Sends an email to recipient(s)
 
     Parameters
     ----------
+    sender : str
     recipients : list
     subject : str
     content : str
@@ -47,6 +48,9 @@ def send_email(recipients, subject, content):
     mime_header = 'MIME-Version: 1.0'
     type_header = 'Content-Type: text/html'
 
+    # Create html body of message
+    content_html = c.CONTENT_HTML.format(body=content, sender=sender)
+
     # Iterate through recipients
     for r in recipients:
         # Create recipient specific email header
@@ -54,10 +58,11 @@ def send_email(recipients, subject, content):
         headers = [from_header, subject_header, to_header,
                    mime_header, type_header]
         headers = '\r\n'.join(headers)
+        message = headers + '\r\n\r\n' + content_html
 
         # Send Email
         logging.debug('Sending an email to: {}'.format(r))
-        session.sendmail(c.GMAIL_USERNAME, r, headers + '\r\n\r\n' + content)
+        session.sendmail(c.GMAIL_USERNAME, r, message)
 
     # Exit
     session.quit
@@ -76,8 +81,9 @@ if __name__ == '__main__':
     logging.basicConfig(format=c.LOGGING_FORMAT, level=logging_level)
 
     # Email Contents
+    sender = 'Test System'
     recipients = [args.address]
     email_subject = 'COVID Risk Alert Test'
-    email_content = 'This is a test'
+    email_content = 'This is a test.'
 
-    send_email(recipients, email_subject, email_content)
+    send_email(sender, recipients, email_subject, email_content)

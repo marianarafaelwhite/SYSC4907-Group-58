@@ -44,11 +44,27 @@ SMTP_PORT = 587
 GMAIL_PASSWORD = 'MC&Dx78K'
 GMAIL_USERNAME = 'covid.smart.home.alert@gmail.com'
 CO2_SUBJECT = 'COVID Risk: High CO2 levels'
-CO2_CONTENT = 'CO2 is {co2} ppm which is low.\n' + \
-              'Take action to prevent the spread of COVID19'
+CO2_CONTENT = """
+    CO2 is {co2} ppm, which is high.<br>
+    High CO2 increases the risk of COVID19 transmission.<br>
+    Take action to prevent the spread of COVID19."""
 HUMIDITY_SUBJECT = 'COVID Risk: Low humidity levels'
-HUMIDITY_CONTENT = 'Humidity is {humidity} % which is low.\n' + \
-                   'Take action to prevent the spread of COVID19'
+HUMIDITY_CONTENT = """
+    Humidity is {humidity} %, which is low.<br>
+    Low humidity increases the risk of COVID19 transmission.<br>
+    Take action to prevent the spread of COVID19."""
+SENDER = 'COVID Risk Alert System'
+CONTENT_HTML = """
+    <html>
+      <head></head>
+      <body>
+        <p>Hi,<br><br>
+           {body}<br><br>
+           Best,<br>
+           {sender}</b>
+        </p>
+      </body>
+    </html>"""
 
 # TODO: Find a better way to register individuals for notifications
 RECIPIENTS = ['marianarafaelwhite@cmail.carleton.ca']

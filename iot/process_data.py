@@ -110,10 +110,11 @@ class DataPoller:
             logging.info('Low humidity! Alert user')
 
             # Send email to defined recipients
+            sender = c.SENDER
             recipients = self.__recipients
             subject = c.HUMIDITY_SUBJECT
             content = c.HUMIDITY_CONTENT.format(humidity=value)
-            iot_email.send_email(recipients, subject, content)
+            iot_email.send_email(sender, recipients, subject, content)
 
     def co2_processing(self, value):
         """
@@ -127,10 +128,11 @@ class DataPoller:
             logging.info('High CO2 Concentration level! Alert user')
 
             # Send email to defined recipients
+            sender = c.SENDER
             recipients = self.__recipients
             subject = c.CO2_SUBJECT
             content = c.CO2_CONTENT.format(co2=value)
-            iot_email.send_email(recipients, subject, content)
+            iot_email.send_email(sender, recipients, subject, content)
 
 
 def parse_args():

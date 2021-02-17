@@ -9,9 +9,11 @@ This project aims to investigate and integrate the following emerging technologi
 * Network Function Virtualization (NFV)
 * Service Function Chaining (SFC)
 
-## References & Resources
-* [sfc_app](https://github.com/abulanov/sfc_app)
-* [simple switch examples)](https://github.com/faucetsdn/ryu/tree/master/ryu/app)
-* [OpenFlow Switch Specification](https://opennetworking.org/wp-content/uploads/2013/04/openflow-spec-v1.3.1.pdf)
-* [Ryu OpenFlow](https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html)
-
+## Roadmap
+* Complete flow support to successfully send messages
+* Define a simple message format
+* Code to interface with IoT hardware
+* IoT emulation script to emulate hardware interaction
+* Program for destination host to send to cloud/text/SMS, etc.
+* Fix directory structure
+* Testing

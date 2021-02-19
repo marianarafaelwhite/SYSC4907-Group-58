@@ -26,72 +26,107 @@ import constants as c
 import iot_sender
 
 
-def run_hardware(polling_time, humidity_only=False,
-                 co2_only=False, address=None):
+class Hardware:
     """
-    Create humidity & CO2 sensor objects and
-    periodically read input from them
-
-    Parameters
-    ----------
-    polling_time : int
-        Time between hardware readings
-    humidity_only : bool
-        True if only humidity sensor is to run
-    co2_only : bool
-        True if only CO2 sensor is to run
-    address : tuple
-        (str, int) for the IP address & port of server
+    Class for the IoT Hardware
     """
-    logging.info('Harware starting. CTRL-C to exit')
-    try:
-        # If humidity_only or default, initialize the humidity sensor
-        if not co2_only:
-            # In debug mode, this line will cause garbage console print outs
-            # (to be ignored)
-            sense_hat = SenseHat()
 
-        # If co2_only or default, initialize the CO2 sensor
-        if not humidity_only:
-            i2c_bus = I2C(SCL, SDA)
-            co2_sensor = CCS811(i2c_bus)
-            # wait for the sensor to be ready
-            while not co2_sensor.data_ready:
-                pass
+    def __init__(self, humidity=True, co2=True, address=None,
+                 humidity_sensor=None, co2_sensor=None):
+        """
+        Create humidity & CO2 sensor objects
 
-            # Additional start up time (to avoid initial 0ppm readings)
-            # Value was found from trial and error
-            startup_time_secs = 5
-            sleep(startup_time_secs)
+        Parameters
+        ----------
+        humidity_only : bool
+            True if only humidity sensor is to run
+        co2_only : bool
+            True if only CO2 sensor is to run
+        address : tuple
+            (str, int) for the IP address & port of server
+        """
+        self.__sense_hat = humidity_sensor
+        self.__co2_sensor = co2_sensor
+        self.__address = address
 
-        while True:
-            # Check humidity sensor levels
-            if not co2_only:
-                humidity_level = sense_hat.get_humidity()
-                msg = 'Humidity level: {} %'.format(humidity_level)
-                logging.debug(msg)
+        # Initialize sensors if not given
+        try:
+            # If humidity_only or default, initialize the humidity sensor
+            if humidity and not humidity_sensor:
+                # In debug mode, this line will cause garbage console lines
+                # (to be ignored)
+                self.__sense_hat = SenseHat()
 
-                # Send to network
-                if addr:
-                    iot_sender.send_humidity(addr, humidity_level)
+            # If co2_only or default, initialize the CO2 sensor
+            if co2 and not co2_sensor:
+                i2c_bus = I2C(SCL, SDA)
+                self.__co2_sensor = CCS811(i2c_bus)
+                # wait for the sensor to be ready
+                while not self.__co2_sensor.data_ready:
+                    pass
 
-            # Check CO2 sensor levels
-            if not humidity_only:
-                co2_level = co2_sensor.eco2
-                msg = 'CO2 concentration level: {} ppm'.format(co2_level)
-                logging.debug(msg)
+                # Additional start up time (to avoid initial 0ppm readings)
+                # Value was found from trial and error
+                startup_time_secs = 5
+                sleep(startup_time_secs)
 
-                # Send to network
-                if addr:
-                    iot_sender.send_co2(addr, co2_level)
+        except BaseException as e:
+            logging.error('An error or exception occurred!: {}'.format(e))
+            exit()
 
-            sleep(polling_time)
+    def poll_hardware(self, polling_time):
+        """
+        Periodically read hardware
 
-    except KeyboardInterrupt:
-        logging.info('Exiting due to keyboard interrupt')
+        Parameters
+        ----------
+        polling_time : int
+        """
+        logging.info('Hardware starting. CTRL-C to exit')
+        try:
+            while True:
+                self.read_hardware()
+                sleep(polling_time)
+        except KeyboardInterrupt:
+            logging.info('Exiting due to keyboard interrupt')
+        except BaseException as e:
+            logging.error('An error or exception occurred!: {}'.format(e))
 
-    except BaseException as e:
-        logging.error('An error or exception occurred!: {}'.format(e))
+    def read_hardware(self):
+        """
+        Periodically read hardware
+        """
+        # Check humidity sensor levels
+        if self.__sense_hat:
+            self.read_humidity()
+
+        # Check CO2 sensor levels
+        if self.__co2_sensor:
+            self.read_co2()
+
+    def read_humidity(self):
+        """
+        Read humidity
+        """
+        humidity_level = self.__sense_hat.get_humidity()
+        msg = 'Humidity level: {} %'.format(humidity_level)
+        logging.debug(msg)
+
+        # Send to network
+        if self.__address:
+            iot_sender.send_humidity(self.__address, humidity_level)
+
+    def read_co2(self):
+        """
+        Read co2
+        """
+        co2_level = self.__co2_sensor.eco2
+        msg = 'CO2 concentration level: {} ppm'.format(co2_level)
+        logging.debug(msg)
+
+        # Send to network
+        if self.__address:
+            iot_sender.send_co2(self.__address, co2_level)
 
 
 def parse_args():
@@ -153,9 +188,11 @@ if __name__ == '__main__':
     if args.ip_address:
         addr = (args.ip_address, args.port)
 
+    hw = None
     if args.hardware == 'humidity':
-        run_hardware(args.time, humidity_only=True, address=addr)
+        hw = Hardware(co2=False, address=addr)
     elif args.hardware == 'co2':
-        run_hardware(args.time, co2_only=True, address=addr)
+        hw = Hardware(humidity=False, address=addr)
     else:
-        run_hardware(args.time, address=addr)
+        hw = Hardware(address=addr)
+    hw.poll_hardware(args.time)

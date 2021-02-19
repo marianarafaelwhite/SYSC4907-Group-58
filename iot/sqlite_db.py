@@ -297,7 +297,7 @@ class HumidityDB(SqliteDB):
 
 class Co2DB(SqliteDB):
     """
-    DB fori CO2
+    DB for CO2
 
     Methods
     -------

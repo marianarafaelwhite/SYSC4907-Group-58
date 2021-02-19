@@ -1,0 +1,3 @@
+sense-hat
+adafruit-python-shell
+adafruit-circuitpython-ccs811

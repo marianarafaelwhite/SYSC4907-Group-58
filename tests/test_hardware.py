@@ -18,6 +18,7 @@ class TestHardware(TestCase):
         hw = Hardware(co2=False, humidity_sensor=Mock())
         hw.read_hardware()
         mock_humidity.assert_called_once_with()
+        mock_co2.assert_not_called()
 
     def test_co2(self, mock_co2, mock_humidity):
         """

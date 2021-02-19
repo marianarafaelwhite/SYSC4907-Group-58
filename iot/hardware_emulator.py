@@ -17,98 +17,114 @@ import constants as c
 import iot_sender
 
 
-def run_emulation(polling_time, humidity_only=False,
-                  co2_only=False, address=None):
+class HardwareEmulator:
     """
-    Create humidity & co2 reading values
-
-    Parameters
-    ----------
-    polling_time : int
-        Time between hardware emulation values
-    humidity_only : bool
-        True if only humidity sensor is to be emulated
-    co2_only : bool
-        True if only CO2 sensor is to be emulated
-    address : tuple
-        (str, int) for the IP address & port of server
+    Class for IoT Emulation of Hardware
     """
-    logging.info('Emulation starting. CTRL-C to exit')
-    try:
-        while True:
-            # Emulate humidity sensor levels
-            if not co2_only:
-                humidity_level = generate_humidity()
-                msg = 'Humidity level: {} %'.format(humidity_level)
-                logging.debug(msg)
 
-                # Send to network
-                if addr:
-                    iot_sender.send_humidity(addr, humidity_level)
+    def __init__(self, humidity=True, co2=True, address=None):
+        """
+        Create humidity & co2 reading values
 
-            # Emulate CO2 sensor levels
-            if not humidity_only:
-                co2_level = generate_co2()
-                msg = 'CO2 concentration level: {} ppm'.format(co2_level)
-                logging.debug(msg)
+        Parameters
+        ----------
+        humidity_only : bool
+            True if only humidity sensor is to be emulated
+        co2_only : bool
+            True if only CO2 sensor is to be emulated
+        address : tuple
+            (str, int) for the IP address & port of server
+        """
+        self.__humidity = humidity
+        self.__co2 = co2
+        self.__address = address
 
-                # Send to network
-                if addr:
-                    iot_sender.send_co2(addr, co2_level)
+    def run_emulation(self, polling_time):
+        """
+        Periodically generate values
 
-            sleep(polling_time)
+        Parameters
+        ----------
+        polling_time : int
+        """
+        logging.info('Emulation starting. CTRL-C to exit')
+        try:
+            while True:
+                self.emulate_data()
+                sleep(polling_time)
+        except KeyboardInterrupt:
+            logging.info('Exiting due to keyboard interrupt')
 
-    except KeyboardInterrupt:
-        logging.info('Exiting due to keyboard interrupt')
+        except BaseException as e:
+            logging.error('An error or exception occurred!: {}'.format(e))
 
-    except BaseException as e:
-        logging.error('An error or exception occurred!: {}'.format(e))
+    def emulate_data(self):
+        """
+        Emulate data
+        """
+        # Emulate humidity sensor levels
+        if self.__humidity:
+            humidity_level = self.generate_humidity()
+            msg = 'Humidity level: {} %'.format(humidity_level)
+            logging.debug(msg)
 
+            # Send to network
+            if self.__address:
+                iot_sender.send_humidity(self.__address, humidity_level)
 
-def generate_humidity():
-    """
-    Generates a humidity value
+        # Emulate CO2 sensor levels
+        if self.__co2:
+            co2_level = self.generate_co2()
+            msg = 'CO2 concentration level: {} ppm'.format(co2_level)
+            logging.debug(msg)
 
-    Returns
-    -------
-    humidity : float
-    """
-    # Generate random # between 0-10
-    rand = randint(0, 10)
-    humidity = 0
+            # Send to network
+            if self.__address:
+                iot_sender.send_co2(self.__address, co2_level)
 
-    # Generate a low, concerning value
-    if rand < c.GENERATE_DANGER:
-        humidity = uniform(c.HUMIDITY_MIN, c.HUMIDITY_THRESHOLD - 1)
+    def generate_humidity(self):
+        """
+        Generates a humidity value
 
-    # Generate a higher, safe value
-    else:
-        humidity = uniform(c.HUMIDITY_THRESHOLD, c.HUMIDITY_MAX)
+        Returns
+        -------
+        humidity : float
+        """
+        # Generate random # between 0-10
+        rand = randint(0, 10)
+        humidity = 0
 
-    return humidity
+        # Generate a low, concerning value
+        if rand < c.GENERATE_DANGER:
+            humidity = uniform(c.HUMIDITY_MIN, c.HUMIDITY_THRESHOLD - 1)
 
+        # Generate a higher, safe value
+        else:
+            humidity = uniform(c.HUMIDITY_THRESHOLD, c.HUMIDITY_MAX)
 
-def generate_co2():
-    """
-    Generates a CO2 concentration level value
+        return humidity
 
-    Returns
-    -------
-    co2 : int
-    """
-    # Generate random # between 0-10
-    rand = randint(0, 10)
-    co2 = 0
+    def generate_co2(self):
+        """
+        Generates a CO2 concentration level value
 
-    # Generate a high, concerning value
-    if rand < c.GENERATE_DANGER:
-        co2 = randint(c.CO2_THRESHOLD + 1, c.CO2_MAX)
+        Returns
+        -------
+        co2 : int
+        """
+        # Generate random # between 0-10
+        rand = randint(0, 10)
+        co2 = 0
 
-    # Generate a lower, safe value
-    else:
-        co2 = randint(c.CO2_MIN, c.CO2_THRESHOLD)
+        # Generate a high, concerning value
+        if rand < c.GENERATE_DANGER:
+            co2 = randint(c.CO2_THRESHOLD + 1, c.CO2_MAX)
 
-    return co2
+        # Generate a lower, safe value
+        else:
+            co2 = randint(c.CO2_MIN, c.CO2_THRESHOLD)
+
+        return co2
 
 
 def parse_args():
@@ -171,8 +187,9 @@ if __name__ == '__main__':
         addr = (args.ip_address, args.port)
 
     if args.hardware == 'humidity':
-        run_emulation(args.time, humidity_only=True, address=addr)
+        hw = HardwareEmulator(co2=False, address=addr)
     elif args.hardware == 'co2':
-        run_emulation(args.time, co2_only=True, address=addr)
+        hw = HardwareEmulator(humidity=False, address=addr)
     else:
-        run_emulation(args.time, address=addr)
+        hw = HardwareEmulator(address=addr)
+    hw.run_emulation(args.time)

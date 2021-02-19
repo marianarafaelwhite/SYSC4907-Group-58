@@ -2,17 +2,23 @@ import argparse
 import socket
 import logging
 import json
+import time
+import constants as c
 
 # logging  
-LOG = "/tmp/logfile.log"                                                     
-logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)  
+LOG = "/tmp/logfile.log"
+logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)
 
 # console handler  
-console = logging.StreamHandler()  
-console.setLevel(logging.ERROR)  
+console = logging.StreamHandler()
+console.setLevel(logging.ERROR)
 logging.getLogger("").addHandler(console)
 
 UDP_PORT = 7777
+rate = 1.0  # unit: messages
+per = 15.0  # unit: seconds
+allowance = dict()  # unit: messages
+last_check = dict()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", help="specify a port, default is 7777")
@@ -31,11 +37,42 @@ while True:
     print(message)
     logging.debug(message)
     parse_msg = json.loads(message.decode("utf-8"))
-    try:
-        if (parse_msg['type'] == "co2"):
-            sock.sendto(message, ("app-co2", int(UDP_PORT)))
-        if (parse_msg['type'] == "humidity"):
-            sock.sendto(message, ("app-humidity", int(UDP_PORT)))
-    except socket.gaierror as ex:
-    	logging.error(str(ex))
-    
+
+    # token bucket from here..
+    # https://stackoverflow.com/questions/667508/whats-a-good-rate-limiting-algorithm
+    current_time = time.time()
+    hardware_id = parse_msg['id']
+
+    if hardware_id in last_check:
+        time_passed = current_time - last_check[hardware_id]
+        last_check[hardware_id] = current_time
+
+        if hardware_id in allowance:
+            allowance[hardware_id] += time_passed * (rate/per)
+        else:
+            allowance[hardware_id] = rate
+
+        logging.debug(f'allowance for id: {hardware_id} is {allowance[hardware_id]:.2f}')
+
+        if allowance[hardware_id] > rate:
+            allowance[hardware_id] = rate  # throttle
+        if allowance[hardware_id] < 1.0:
+            logging.info(f'excessive message from {hardware_id}, discard')
+            try:
+                sock.sendto(message, (c.EXCESS_MESSAGE_LOGGER, int(UDP_PORT)))
+            except socket.gaierror as ex:
+                logging.error(str(ex))
+            continue
+        else:
+            try:
+                if parse_msg['type'] == "co2":
+                    sock.sendto(message, (c.APP_CO2, int(UDP_PORT)))
+                if parse_msg['type'] == "humidity":
+                    sock.sendto(message, (c.APP_HUMIDITY, int(UDP_PORT)))
+            except socket.gaierror as ex:
+                logging.error(str(ex))
+            logging.debug(f'message from {hardware_id}, forwarded')
+            allowance[hardware_id] -= 1.0
+    else:
+        # found a new pi
+        last_check[hardware_id] = current_time

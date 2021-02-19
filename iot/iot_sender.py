@@ -30,7 +30,7 @@ def send(address, message):
     time.sleep(THINGSPEAK_DELAY_SECS)
 
 
-def send_humidity(address, humidity_level):
+def send_humidity(address, humidity_level, hardware_id):
     """
     Send humidity message via socket
 
@@ -39,16 +39,16 @@ def send_humidity(address, humidity_level):
     address : tuple
         Address as (str, int) (IP address, UDP port)
     humidity_level : float
+    hardware_id : int
+        48bit int obtained from uuid.getnode()
     """
-    humidity_dict = {}
-    humidity_dict['type'] = 'humidity'
-    humidity_dict['value'] = humidity_level
+    humidity_dict = {'type': 'humidity', 'value': humidity_level, 'id': hardware_id}
 
     message = json.dumps(humidity_dict)
     send(address, message)
 
 
-def send_co2(address, co2_level):
+def send_co2(address, co2_level, hardware_id):
     """
     Send CO2 concentration message via socket
 
@@ -57,10 +57,10 @@ def send_co2(address, co2_level):
     address : tuple
         Address as (str, int) (IP address, UDP port)
     co2_level : float
+    hardware_id : int
+        48bit int obtained from uuid.getnode()
     """
-    co2_dict = {}
-    co2_dict['type'] = 'co2'
-    co2_dict['value'] = co2_level
+    co2_dict = {'type': 'co2', 'value': co2_level, 'id': hardware_id}
 
     message = json.dumps(co2_dict)
     send(address, message)

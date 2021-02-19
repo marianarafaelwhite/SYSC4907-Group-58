@@ -32,8 +32,9 @@ spec:
         app: app-humidity
     spec:
       containers:
-      - image: sysc4907_group58/server
+      - image: sysc4907_group58/python-app
         name: app-humidity
+        args: ["python3", "/iot/process_data.py", "--verbose"]
         imagePullPolicy: Never
         resources: {}
         ports:

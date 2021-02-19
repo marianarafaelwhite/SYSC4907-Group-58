@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: excess-message-logger
+  labels:
+    app: excess-message-logger
+spec:
+  type: ClusterIP
+  ports:
+  - port: 7777
+    protocol: UDP
+  selector:
+    app: excess-message-logger
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: excess-message-logger
+  name: excess-message-logger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: excess-message-logger
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: excess-message-logger
+    spec:
+      volumes:
+      - name: pv-storage-excess-messages
+        persistentVolumeClaim:
+          claimName: pv-claim-excess-messages
+      containers:
+      - image: sysc4907_group58/python-app
+        name: excess-message-logger
+        args: ["python3", "/iot/message_saver.py", "--verbose", "--file", "/usr/share/excess-messages/excess-packets.dat"]
+        imagePullPolicy: Never
+        resources: {}
+        ports:
+          - containerPort: 7777
+        volumeMounts:
+          - mountPath: "/usr/share/excess-messages"
+            name: pv-storage-excess-messages
+status: {}
+---
+# quick startup guide on how to use PersistentVolume
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-volume-excess-messages
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  hostPath:
+# note that this is the path on the minikube container/VM, not on the host machine
+    path: /data/excess-messages
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pv-claim-excess-messages
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

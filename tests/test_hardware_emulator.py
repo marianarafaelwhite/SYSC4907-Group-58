@@ -1,5 +1,5 @@
 """
-test_hardware.py
+test_hardware_emulator.py
 """
 from iot.hardware_emulator import HardwareEmulator
 from unittest import TestCase, main

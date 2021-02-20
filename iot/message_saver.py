@@ -34,9 +34,8 @@ class MessageSaver:
             while True:
                 message, address = sock.recvfrom(1024)
                 logging.debug('Received: {}'.format(message))
-                # flush it more often?
-                # also need a better record format...
-                f.write(f'{time.time()}:{message.decode()}\n')
+                # note that this is buffered write, but we are not using this data anyway
+                f.write(f'{{"received_time":{time.time()},"packet":{message.decode()}}}\n')
 
 
 def parse_args():

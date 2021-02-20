@@ -68,3 +68,9 @@ CONTENT_HTML = """
 
 # TODO: Find a better way to register individuals for notifications
 RECIPIENTS = ['marianarafaelwhite@cmail.carleton.ca']
+
+# hostname of various services
+# remember to change "metadata: name: HOSTNAME" in the Service definition as well
+EXCESS_MESSAGE_LOGGER = "excess-message-logger"
+APP_CO2 = "app-co2"
+APP_HUMIDITY = "app-humidity"

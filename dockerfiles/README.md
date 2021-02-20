@@ -18,5 +18,4 @@ TODO:
 - [ ] maybe fix the naming of the files
 
  * base: pulls Ubuntu 18.04 and install a bunch of packages
- * server: base + an entry point directly starting iot\process_data.py
- * classifier: base + an entry point directly starting iot\iot_classifier.py
+ * python-app: base + copy the iot folder into the image

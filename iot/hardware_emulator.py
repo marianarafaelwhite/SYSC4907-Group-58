@@ -22,15 +22,15 @@ class HardwareEmulator:
     Class for IoT Emulation of Hardware
     """
 
-    def __init__(self, humidity=True, co2=True, address=None):
+    def __init__(self, hardware_id, humidity=True, co2=True, address=None):
         """
         Create humidity & co2 reading values
 
         Parameters
         ----------
-        humidity_only : bool
+        humidity : bool
             True if only humidity sensor is to be emulated
-        co2_only : bool
+        co2 : bool
             True if only CO2 sensor is to be emulated
         address : tuple
             (str, int) for the IP address & port of server
@@ -38,6 +38,7 @@ class HardwareEmulator:
         self.__humidity = humidity
         self.__co2 = co2
         self.__address = address
+        self.__hardware_id = hardware_id
 
     def run_emulation(self, polling_time):
         """
@@ -70,7 +71,7 @@ class HardwareEmulator:
 
             # Send to network
             if self.__address:
-                iot_sender.send_humidity(self.__address, humidity_level)
+                iot_sender.send_humidity(self.__address, humidity_level, self.__hardware_id)
 
         # Emulate CO2 sensor levels
         if self.__co2:
@@ -80,7 +81,7 @@ class HardwareEmulator:
 
             # Send to network
             if self.__address:
-                iot_sender.send_co2(self.__address, co2_level)
+                iot_sender.send_co2(self.__address, co2_level, self.__hardware_id)
 
     def generate_humidity(self):
         """
@@ -92,7 +93,6 @@ class HardwareEmulator:
         """
         # Generate random # between 0-10
         rand = randint(0, 10)
-        humidity = 0
 
         # Generate a low, concerning value
         if rand < c.GENERATE_DANGER:
@@ -114,7 +114,6 @@ class HardwareEmulator:
         """
         # Generate random # between 0-10
         rand = randint(0, 10)
-        co2 = 0
 
         # Generate a high, concerning value
         if rand < c.GENERATE_DANGER:
@@ -173,6 +172,13 @@ def parse_args():
                         type=int,
                         help='Default: 7777')
 
+    parser.add_argument('-id',
+                        '--hardware_id',
+                        metavar='<48bit mac in int>',
+                        default='1234567890',
+                        type=int,
+                        help='Default: 1234567890')
+
     args = parser.parse_args()
     return args
 
@@ -187,9 +193,9 @@ if __name__ == '__main__':
         addr = (args.ip_address, args.port)
 
     if args.hardware == 'humidity':
-        hw = HardwareEmulator(co2=False, address=addr)
+        hw = HardwareEmulator(co2=False, address=addr, hardware_id=args.hardware_id)
     elif args.hardware == 'co2':
-        hw = HardwareEmulator(humidity=False, address=addr)
+        hw = HardwareEmulator(humidity=False, address=addr, hardware_id=args.hardware_id)
     else:
-        hw = HardwareEmulator(address=addr)
+        hw = HardwareEmulator(address=addr, hardware_id=args.hardware_id)
     hw.run_emulation(args.time)

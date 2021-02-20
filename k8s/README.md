@@ -16,10 +16,9 @@ TODO:
 1. Switch to minikube env and build docker images.
    If the docker images are built outside the env, Kubernetes won't be able to find them.
     ```bash
-    $(minikube docker-env)
+    eval $(minikube -p minikube docker-env)
     docker build -t sysc4907_group58/base -f dockerfiles/base/Dockerfile .
-    docker build -t sysc4907_group58/classifier -f dockerfiles/classifier/Dockerfile .
-    docker build -t sysc4907_group58/server -f dockerfiles/server/Dockerfile .
+    docker build -t sysc4907_group58/python-app -f dockerfiles/classifier/Dockerfile .
     ```
 1. Create Kubernetes resources with the provided configuration files located inside k8s/ folder
     ```bash

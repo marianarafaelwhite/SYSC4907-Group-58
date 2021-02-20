@@ -24,6 +24,7 @@ import argparse
 import logging
 import constants as c
 import iot_sender
+import uuid
 
 
 class Hardware:
@@ -38,9 +39,9 @@ class Hardware:
 
         Parameters
         ----------
-        humidity_only : bool
+        humidity : bool
             True if only humidity sensor is to run
-        co2_only : bool
+        co2 : bool
             True if only CO2 sensor is to run
         address : tuple
             (str, int) for the IP address & port of server
@@ -48,6 +49,7 @@ class Hardware:
         self.__sense_hat = humidity_sensor
         self.__co2_sensor = co2_sensor
         self.__address = address
+        self.__hardware_id = uuid.getnode()
 
         # Initialize sensors if not given
         try:
@@ -114,7 +116,7 @@ class Hardware:
 
         # Send to network
         if self.__address:
-            iot_sender.send_humidity(self.__address, humidity_level)
+            iot_sender.send_humidity(self.__address, humidity_level, self.__hardware_id)
 
     def read_co2(self):
         """
@@ -126,7 +128,7 @@ class Hardware:
 
         # Send to network
         if self.__address:
-            iot_sender.send_co2(self.__address, co2_level)
+            iot_sender.send_co2(self.__address, co2_level, self.__hardware_id)
 
 
 def parse_args():

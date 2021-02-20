@@ -15,16 +15,17 @@ class TestHardwareEmulator(TestCase):
         Test only running humidity sensor (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator(co2=False)
+        hw = HardwareEmulator(co2=False, hardware_id=123456789)
         hw.emulate_data()
         mock_humidity.assert_called_once_with()
+        mock_co2.assert_not_called()
 
     def test_co2(self, mock_co2, mock_humidity):
         """
         Test only running CO2 sensor (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator(humidity=False)
+        hw = HardwareEmulator(humidity=False, hardware_id=123456789)
         hw.emulate_data()
         mock_humidity.assert_not_called()
         mock_co2.assert_called_once_with()
@@ -34,7 +35,7 @@ class TestHardwareEmulator(TestCase):
         Test running all sensors (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator()
+        hw = HardwareEmulator(hardware_id=123456789)
         hw.emulate_data()
         mock_humidity.assert_called_once_with()
         mock_co2.assert_called_once_with()

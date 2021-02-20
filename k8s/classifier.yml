@@ -33,8 +33,9 @@ spec:
         app: classifier
     spec:
       containers:
-      - image: sysc4907_group58/classifier
+      - image: sysc4907_group58/python-app
         name: classifier
+        args: ["python3", "/iot/iot_classifier.py"]
         imagePullPolicy: Never
         resources: {}
         ports:

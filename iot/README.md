@@ -51,7 +51,12 @@ sudo apt install sense-hat
     cd iot
     ./cloud_reader.py --verbose
     ```
-1. Optional: for step 3, add try the following to send a notification
+1. Optional: for step 3, try the following to send a notification
     ```
     ./process_data.py --verbose --address <email_address>
+    ```
+1. Optional: for step 1 or 2, try the following to display received messages:
+    ```
+    ./hardware.py --verbose -ip <ip_address> -p <port> -d
+    ./hardware_emulator.py --verbose -ip <ip_address> -p <port> -d
     ```

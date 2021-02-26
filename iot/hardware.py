@@ -25,6 +25,13 @@ import logging
 import constants as c
 import iot_sender
 import uuid
+from led_screen import LedScreen
+from threading import Thread
+import json
+import socket as s
+
+# Variables shared between threads
+status = c.UNKNOWN
 
 
 class Hardware:
@@ -33,23 +40,40 @@ class Hardware:
     """
 
     def __init__(self, humidity=True, co2=True, address=None,
-                 humidity_sensor=None, co2_sensor=None):
+                 humidity_sensor=None, co2_sensor=None, display=False):
         """
         Create humidity & CO2 sensor objects
 
         Parameters
         ----------
         humidity : bool
-            True if only humidity sensor is to run
+            True if humidity sensor is to run
         co2 : bool
-            True if only CO2 sensor is to run
+            True if CO2 sensor is to run
         address : tuple
             (str, int) for the IP address & port of server
+        humidity_sensor : SenseHat
+        co2_sensor : CCS811
+        display : bool
         """
-        self.__sense_hat = humidity_sensor
+        sense_hat = humidity_sensor
+        self.__humidity_sensor = humidity_sensor
         self.__co2_sensor = co2_sensor
         self.__address = address
         self.__hardware_id = uuid.getnode()
+        self.__screen = None
+        self.__receiver = None
+
+        if display:
+            if not sense_hat:
+                sense_hat = SenseHat()
+            self.__screen = LedScreen(sense_hat)
+
+            # Initialize thread to listen for external messages
+            # TODO: Add handling to customize this listening address
+            self.__receiver = ReceiverThread(('', 12000))
+            # Begin listening for external messages (non blocking)
+            self.__receiver.start()
 
         # Initialize sensors if not given
         try:
@@ -57,7 +81,8 @@ class Hardware:
             if humidity and not humidity_sensor:
                 # In debug mode, this line will cause garbage console lines
                 # (to be ignored)
-                self.__sense_hat = SenseHat()
+                # Note: only init Sense HAT if not in display mode
+                self.__humidity_sensor = sense_hat if sense_hat else SenseHat()
 
             # If co2_only or default, initialize the CO2 sensor
             if co2 and not co2_sensor:
@@ -88,9 +113,13 @@ class Hardware:
         try:
             while True:
                 self.read_hardware()
+                if self.__screen:
+                    self.update_display()
                 sleep(polling_time)
         except KeyboardInterrupt:
             logging.info('Exiting due to keyboard interrupt')
+            if self.__screen:
+                self.__screen.clear()
         except BaseException as e:
             logging.error('An error or exception occurred!: {}'.format(e))
 
@@ -99,24 +128,37 @@ class Hardware:
         Periodically read hardware
         """
         # Check humidity sensor levels
-        if self.__sense_hat:
+        if self.__humidity_sensor:
             self.read_humidity()
 
         # Check CO2 sensor levels
         if self.__co2_sensor:
             self.read_co2()
 
+    def update_display(self):
+        """
+        Update display
+        """
+        global status
+        displays = {c.UNKNOWN: self.__screen.display_unknown,
+                    c.SAFE: self.__screen.display_safe,
+                    c.WARNING: self.__screen.display_warning}
+        displays[status]()
+
     def read_humidity(self):
         """
         Read humidity
         """
-        humidity_level = self.__sense_hat.get_humidity()
+        humidity_level = self.__humidity_sensor.get_humidity()
         msg = 'Humidity level: {} %'.format(humidity_level)
         logging.debug(msg)
 
         # Send to network
         if self.__address:
-            iot_sender.send_humidity(self.__address, humidity_level, self.__hardware_id)
+            iot_sender.send_humidity(
+                self.__address,
+                humidity_level,
+                self.__hardware_id)
 
     def read_co2(self):
         """
@@ -129,6 +171,43 @@ class Hardware:
         # Send to network
         if self.__address:
             iot_sender.send_co2(self.__address, co2_level, self.__hardware_id)
+
+
+class ReceiverThread(Thread):
+    """
+    Thread to handle external messages
+    """
+
+    def __init__(self, address):
+        """
+        Initializes the Receiver Thread
+
+        Parameters
+        ----------
+        address : (str, int)
+        """
+        Thread.__init__(self)
+        self.__address = address
+
+    def run(self):
+        """
+        threading.Thread run() method called when start() is called
+        """
+        global status
+
+        recv_socket = s.socket(s.AF_INET, s.SOCK_DGRAM)
+        recv_socket.bind(self.__address)
+
+        try:
+            while True:
+                request, address = recv_socket.recvfrom(1024)
+                parse_msg = json.loads(request.decode('utf-8'))
+                if parse_msg['status'] == 'safe':
+                    status = c.SAFE
+                elif parse_msg['status'] == 'warning':
+                    status = c.WARNING
+        except Exception:
+            recv_socket.close()
 
 
 def parse_args():
@@ -177,6 +256,12 @@ def parse_args():
                         type=int,
                         help='Default: 7777')
 
+    parser.add_argument('-d',
+                        '--display',
+                        default=False,
+                        action='store_true',
+                        help='Display icons on screen')
+
     args = parser.parse_args()
     return args
 
@@ -192,9 +277,9 @@ if __name__ == '__main__':
 
     hw = None
     if args.hardware == 'humidity':
-        hw = Hardware(co2=False, address=addr)
+        hw = Hardware(co2=False, address=addr, display=args.display)
     elif args.hardware == 'co2':
-        hw = Hardware(humidity=False, address=addr)
+        hw = Hardware(humidity=False, address=addr, display=args.display)
     else:
-        hw = Hardware(address=addr)
+        hw = Hardware(address=addr, display=args.display)
     hw.poll_hardware(args.time)

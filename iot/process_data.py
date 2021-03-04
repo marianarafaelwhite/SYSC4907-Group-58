@@ -21,7 +21,7 @@ import argparse
 
 # logging
 LOG = "/tmp/logfile.log"
-# logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)
+logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)
 
 
 class DataPoller:

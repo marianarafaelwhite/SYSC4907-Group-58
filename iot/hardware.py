@@ -31,7 +31,8 @@ import json
 import socket as s
 
 # Variables shared between threads
-status = c.UNKNOWN
+humidity_status = c.UNKNOWN
+co2_status = c.UNKNOWN
 
 
 class Hardware:
@@ -64,16 +65,18 @@ class Hardware:
         self.__screen = None
         self.__receiver = None
 
-        if display:
-            if not sense_hat:
-                sense_hat = SenseHat()
-            self.__screen = LedScreen(sense_hat)
+        if self.__address:
+            self.__pi_socket = s.socket(s.AF_INET, s.SOCK_DGRAM)
 
-            # Initialize thread to listen for external messages
-            # TODO: Add handling to customize this listening address
-            self.__receiver = ReceiverThread(('', 12000))
-            # Begin listening for external messages (non blocking)
-            self.__receiver.start()
+            if display:
+                if not sense_hat:
+                    sense_hat = SenseHat()
+                self.__screen = LedScreen(sense_hat)
+
+                # Initialize thread to listen for external messages
+                self.__receiver = ReceiverThread(self.__pi_socket)
+                # Begin listening for external messages (non blocking)
+                self.__receiver.start()
 
         # Initialize sensors if not given
         try:
@@ -112,14 +115,16 @@ class Hardware:
         logging.info('Hardware starting. CTRL-C to exit')
         try:
             while True:
-                self.read_hardware()
                 if self.__screen:
                     self.update_display()
+                self.read_hardware()
                 sleep(polling_time)
         except KeyboardInterrupt:
             logging.info('Exiting due to keyboard interrupt')
             if self.__screen:
                 self.__screen.clear()
+            if self.__address:
+                self.__pi_socket.close()
         except BaseException as e:
             logging.error('An error or exception occurred!: {}'.format(e))
 
@@ -139,11 +144,16 @@ class Hardware:
         """
         Update display
         """
-        global status
-        displays = {c.UNKNOWN: self.__screen.display_unknown,
-                    c.SAFE: self.__screen.display_safe,
-                    c.WARNING: self.__screen.display_warning}
-        displays[status]()
+        global humidity_status
+        global co2_status
+
+        # Update humidity sensor display
+        if self.__humidity_sensor:
+            self.__screen.display_humidity(humidity_status)
+
+        # Update CO2 sensor display
+        if self.__co2_sensor:
+            self.__screen.display_co2(co2_status)
 
     def read_humidity(self):
         """
@@ -156,6 +166,7 @@ class Hardware:
         # Send to network
         if self.__address:
             iot_sender.send_humidity(
+                self.__pi_socket,
                 self.__address,
                 humidity_level,
                 self.__hardware_id)
@@ -170,7 +181,11 @@ class Hardware:
 
         # Send to network
         if self.__address:
-            iot_sender.send_co2(self.__address, co2_level, self.__hardware_id)
+            iot_sender.send_co2(
+                self.__pi_socket,
+                self.__address,
+                co2_level,
+                self.__hardware_id)
 
 
 class ReceiverThread(Thread):
@@ -178,7 +193,7 @@ class ReceiverThread(Thread):
     Thread to handle external messages
     """
 
-    def __init__(self, address):
+    def __init__(self, sock):
         """
         Initializes the Receiver Thread
 
@@ -187,27 +202,31 @@ class ReceiverThread(Thread):
         address : (str, int)
         """
         Thread.__init__(self)
-        self.__address = address
+        self.__sock = sock
 
     def run(self):
         """
         threading.Thread run() method called when start() is called
         """
-        global status
-
-        recv_socket = s.socket(s.AF_INET, s.SOCK_DGRAM)
-        recv_socket.bind(self.__address)
+        global humidity_status
+        global co2_status
 
         try:
             while True:
-                request, address = recv_socket.recvfrom(1024)
+                request, address = self.__sock.recvfrom(1024)
                 parse_msg = json.loads(request.decode('utf-8'))
-                if parse_msg['status'] == 'safe':
-                    status = c.SAFE
-                elif parse_msg['status'] == 'warning':
-                    status = c.WARNING
+                msg_type = parse_msg['type']
+                msg_status = parse_msg['status']
+                if msg_type == 'humidity' and msg_status == 'safe':
+                    humidity_status = c.SAFE
+                elif msg_type == 'humidity' and msg_status == 'warning':
+                    humidity_status = c.WARNING
+                elif msg_type == 'co2' and msg_status == 'safe':
+                    co2_status = c.SAFE
+                elif msg_type == 'co2' and msg_status == 'warning':
+                    co2_status = c.WARNING
         except Exception:
-            recv_socket.close()
+            self.__sock.close()
 
 
 def parse_args():

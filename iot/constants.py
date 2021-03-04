@@ -61,7 +61,7 @@ CONTENT_HTML = """
     <html>
       <head></head>
       <body>
-        <p>Hi,<br><br>
+        <p>Hello,<br><br>
            {body}<br><br>
            Best,<br>
            {sender}</b>

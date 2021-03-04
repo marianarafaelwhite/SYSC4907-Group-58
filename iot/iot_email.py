@@ -43,7 +43,7 @@ def send_email(sender, recipients, subject, content):
     session.login(c.GMAIL_USERNAME, c.GMAIL_PASSWORD)
 
     # General email headers
-    from_header = 'From: {}'.format(c.GMAIL_USERNAME)
+    from_header = 'From: {}'.format('COVID Risk Alert System')
     subject_header = 'Subject: {}'.format(subject)
     mime_header = 'MIME-Version: 1.0'
     type_header = 'Content-Type: text/html'

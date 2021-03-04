@@ -2,6 +2,7 @@
 led_screen.py
 """
 from sense_hat import SenseHat
+import constants as c
 
 
 class LedScreen:
@@ -20,55 +21,62 @@ class LedScreen:
         self.__sense_hat = sense_hat
         self.__sense_hat.low_light = True
 
-    def display_safe(self):
+    def display_humidity(self, status):
         """
-        Displays safe message on screen
         """
-        G = (0, 128, 0)  # Green
-        B = (0, 0, 0)   # Black
+        green = (0, 128, 0)
+        red = (255, 0, 0)
+        grey = (128, 128, 128)
+        black = (0, 0, 0)
+
+        colour = {c.SAFE: green,
+                  c.WARNING: red}
+        C = colour.get(status, grey)
+        B = black
 
         display = [B, B, B, B, B, B, B, B,
-                   B, B, B, B, B, B, B, G,
-                   B, B, B, B, B, B, G, G,
-                   B, B, B, B, B, G, G, B,
-                   G, B, B, B, G, G, B, B,
-                   G, G, B, G, G, B, B, B,
-                   B, G, G, G, B, B, B, B,
-                   B, B, G, B, B, B, B, B]
-        self.__sense_hat.set_pixels(display)
-
-    def display_warning(self):
-        """
-        Displays warning message on screen
-        """
-        Y = (255, 215, 0)   # Yellow (Gold)
-        B = (0, 0, 0)       # Black
-
-        display = [B, B, B, Y, B, B, B, B,
-                   B, B, B, Y, B, B, B, B,
-                   B, B, Y, B, Y, B, B, B,
-                   B, B, Y, B, Y, B, B, B,
-                   B, Y, Y, B, Y, Y, B, B,
-                   B, Y, Y, Y, Y, Y, B, B,
-                   Y, Y, Y, B, Y, Y, Y, B,
-                   Y, Y, Y, Y, Y, Y, Y, B]
-        self.__sense_hat.set_pixels(display)
-
-    def display_unknown(self):
-        """
-        Displays unknown message on screen
-        """
-        G = (128, 128, 128)  # Grey
-        B = (0, 0, 0)   # Black
-
-        display = [B, B, B, G, B, B, B, B,
-                   B, B, G, B, G, B, B, B,
-                   B, G, B, B, B, G, B, B,
-                   B, B, B, B, B, G, B, B,
-                   B, B, B, G, G, G, B, B,
-                   B, B, B, G, B, B, B, B,
                    B, B, B, B, B, B, B, B,
-                   B, B, B, G, B, B, B, B]
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, C, C, B, B, B, B, B,
+                   B, C, C, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B]
+
+        pixel_list = self.__sense_hat.get_pixels()
+        for i in range(0, len(pixel_list)):
+            if pixel_list[i] != [0, 0, 0] and display[i] == black:
+                display[i] = tuple(pixel_list[i])
+
+        self.__sense_hat.set_pixels(display)
+
+    def display_co2(self, status):
+        """
+        """
+        green = (0, 128, 0)
+        red = (255, 0, 0)
+        grey = (128, 128, 128)
+        black = (0, 0, 0)
+
+        colour = {c.SAFE: green,
+                  c.WARNING: red}
+        C = colour.get(status, grey)
+        B = black
+
+        display = [B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, B, B, B,
+                   B, B, B, B, B, C, C, B,
+                   B, B, B, B, B, C, C, B,
+                   B, B, B, B, B, B, B, B]
+
+        pixel_list = self.__sense_hat.get_pixels()
+        for i in range(0, len(pixel_list)):
+            if pixel_list[i] != [0, 0, 0] and display[i] == black:
+                display[i] = tuple(pixel_list[i])
+
         self.__sense_hat.set_pixels(display)
 
     def clear(self):
@@ -83,17 +91,26 @@ if __name__ == '__main__':
     sense = SenseHat()
     screen = LedScreen(sense)
 
-    displays = [screen.display_unknown,
-                screen.display_warning,
-                screen.display_safe]
     arrow_directions = ['left', 'right', 'up', 'down']
-    count = 0
     update_screen = True
+    count = 0
 
     try:
         while True:
             if update_screen:
-                displays[count % len(displays)]()
+                if count == 0:
+                    screen.display_humidity(c.UNKNOWN)
+                    screen.display_co2(c.UNKNOWN)
+                elif count == 1:
+                    screen.display_humidity(c.SAFE)
+                elif count == 2:
+                    screen.display_co2(c.SAFE)
+                elif count == 3:
+                    screen.display_humidity(c.WARNING)
+                elif count == 4:
+                    screen.display_co2(c.WARNING)
+                    count = -1  # Reset
+
                 count += 1
                 update_screen = False
 

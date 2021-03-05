@@ -15,6 +15,7 @@ from thingspeak import write_to_channel
 import socket as s
 import constants as c
 import iot_email
+import iot_sender
 import logging
 import argparse
 
@@ -38,6 +39,14 @@ class DataPoller:
         self.__port = port
         self.__recipients = address
 
+        # Flag to be reset if true after values become safe
+        self.__humidity_warning = False
+        self.__co2_warning = False
+
+        # Flag to be set false after first message processing
+        self.__humidity_first = True
+        self.__co2_first = True
+
     def poll_data(self):
         """
         Waits to receive data from network
@@ -46,6 +55,7 @@ class DataPoller:
             sock.bind(('', self.__port))
             while True:
                 message, address = sock.recvfrom(1024)
+                self.__address = address
                 logging.debug('Received: {}'.format(message))
                 self.process_data(message)
 
@@ -66,6 +76,9 @@ class DataPoller:
         message_dict = eval(message.decode())
         type_data = message_dict.get('type', None)
         value_data = message_dict.get('value', None)
+        ip_data = message_dict.get('src_ip', None)
+        port_data = message_dict.get('src_port', None)
+        address = (ip_data, port_data)
 
         # Unrecognized message, ignore
         if not type_data or not value_data:
@@ -74,12 +87,12 @@ class DataPoller:
 
         # Assembly humidity record
         if type_data == 'humidity':
-            self.humidity_processing(value_data)
+            self.humidity_processing(value_data, address)
             fields = {c.HUMIDITY_FIELD: value_data}
 
         # Aseembly co2 record
         elif type_data == 'co2':
-            self.co2_processing(value_data)
+            self.co2_processing(value_data, address)
             fields = {c.CO2_FIELD: value_data}
 
         # Unrecognized type, ignore
@@ -98,41 +111,88 @@ class DataPoller:
         else:
             logging.error('Write to cloud was unsuccessful: {}'.format(reason))
 
-    def humidity_processing(self, value):
+    def humidity_processing(self, value, address):
         """
         Further process humidity data
 
         Parameters
         ----------
         value : float
+        address : tuple
         """
         if value < c.HUMIDITY_THRESHOLD:
             logging.info('Low humidity! Alert user')
 
-            # Send email to defined recipients
-            sender = c.SENDER
-            recipients = self.__recipients
-            subject = c.HUMIDITY_SUBJECT
-            content = c.HUMIDITY_CONTENT.format(humidity=value)
-            iot_email.send_email(sender, recipients, subject, content)
+            # Send notification only upon first recognition of warning
+            if not self.__humidity_warning:
+                self.__humidity_warning = True
 
-    def co2_processing(self, value):
+                # Send email to defined recipients
+                sender = c.SENDER
+                recipients = self.__recipients
+                subject = c.HUMIDITY_SUBJECT
+                content = c.HUMIDITY_CONTENT.format(humidity=value)
+                logging.debug('Sending Humidity warning email to user')
+                iot_email.send_email(sender, recipients, subject, content)
+
+                # If address found in message, send message back
+                if address[0] and address[1]:
+                    # Update LED screen
+                    logging.debug('Sending Pi a WARNING humidity message')
+                    iot_sender.send_humidity_update(address, 'warning')
+
+        else:
+            # Reset warning
+            if self.__humidity_warning or self.__humidity_first:
+                self.__humidity_warning = False
+                self.__humidity_first = False
+
+                # If address found in message, send message back
+                if address[0] and address[1]:
+                    logging.debug('Sending Pi a SAFE humidity message')
+                    iot_sender.send_humidity_update(address, 'safe')
+
+    def co2_processing(self, value, address):
         """
         Further process CO2 data
 
         Parameters
         ----------
         value : int
+        address : tuple
         """
         if value > c.CO2_THRESHOLD:
             logging.info('High CO2 Concentration level! Alert user')
 
-            # Send email to defined recipients
-            sender = c.SENDER
-            recipients = self.__recipients
-            subject = c.CO2_SUBJECT
-            content = c.CO2_CONTENT.format(co2=value)
-            iot_email.send_email(sender, recipients, subject, content)
+            # Send notification only upon first recognition of warning
+            if not self.__co2_warning:
+                self.__co2_warning = True
+
+                # Send email to defined recipients
+                sender = c.SENDER
+                recipients = self.__recipients
+                subject = c.CO2_SUBJECT
+                content = c.CO2_CONTENT.format(co2=value)
+                logging.debug('Sending CO2 warning email to user')
+                iot_email.send_email(sender, recipients, subject, content)
+
+                # If address found in message, send message back
+                if address[0] and address[1]:
+                    # Update LED screen
+                    logging.debug('Sending Pi a WARNING CO2 message')
+                    iot_sender.send_co2_update(address, 'warning')
+                    self.__co2_warning = True
+
+        else:
+            # Reset warning
+            if self.__co2_warning or self.__co2_first:
+                self.__co2_warning = False
+                self.__co2_first = False
+
+                # If address found in message, send message back
+                if address[0] and address[1]:
+                    logging.debug('Sending Pi a SAFE CO2 message')
+                    iot_sender.send_co2_update(address, 'safe')
 
 
 def parse_args():

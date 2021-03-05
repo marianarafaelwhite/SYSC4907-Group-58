@@ -13,6 +13,9 @@ CO2_MIN = 400
 CO2_MAX = 8192
 CO2_THRESHOLD = 750
 GENERATE_DANGER = 1
+SAFE='SAFE'
+WARNING = 'WARNING'
+UNKNOWN = 'UNKNOWN'
 
 # Thingspeak related
 AIR_QUALITY_WRITE_KEY = 'ROK806WNRUKNAUZ0'
@@ -58,7 +61,7 @@ CONTENT_HTML = """
     <html>
       <head></head>
       <body>
-        <p>Hi,<br><br>
+        <p>Hello,<br><br>
            {body}<br><br>
            Best,<br>
            {sender}</b>

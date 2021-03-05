@@ -1,5 +1,6 @@
 import argparse
 import socket
+import json
 
 IP = "10.211.55.4"
 SEND_PORT = 7777
@@ -28,5 +29,13 @@ sock.bind(('', int(RECEIVE_PORT)))
 while True:
     message, address = sock.recvfrom(1024)
     if args.v:
-        print(message)
+        print('Received: {}'.format(message))
+
+    parse_msg = json.loads(message.decode('utf-8'))
+    parse_msg['src_ip'] = address[0]
+    parse_msg['src_port'] = address[1]
+
+    message = json.dumps(parse_msg).encode('utf-8')
+    if args.v:
+        print('Forwarding {}'.format(message))
     sock.sendto(message, (IP, int(SEND_PORT)))

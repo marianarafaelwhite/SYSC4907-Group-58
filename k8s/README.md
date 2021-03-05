@@ -18,7 +18,7 @@ TODO:
     ```bash
     eval $(minikube -p minikube docker-env)
     docker build -t sysc4907_group58/base -f dockerfiles/base/Dockerfile .
-    docker build -t sysc4907_group58/python-app -f dockerfiles/classifier/Dockerfile .
+    docker build -t sysc4907_group58/python-app -f dockerfiles/python-app/Dockerfile .
     ```
 1. Create Kubernetes resources with the provided configuration files located inside k8s/ folder
     ```bash
@@ -48,6 +48,16 @@ TODO:
    python3 hardware_emulator.py -v -ip 192.168.49.2 -p 32388
    ```
    
+   OR, if using Pi, run the forwarder script to forward traffic to the classifier
+   ```bash
+   python3 iot_forwarder.py -v -ip 192.168.49.2 -s 32388 -p 6789
+   ```
+
+   Then, on Pi run the hardware script:
+   ```bash
+   python3 hardware.py -v -d -ip <IP of Linux environment> -p 6789
+   ```
+
    Let's check whether the app behind the classifier is receiving the traffic.
 
    First figure out the name of a pod running the data processing application.

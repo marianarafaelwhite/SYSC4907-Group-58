@@ -30,30 +30,36 @@ def send(address, message):
     time.sleep(THINGSPEAK_DELAY_SECS)
 
 
-def send_humidity(address, humidity_level, hardware_id):
+def send_humidity(sock, address, humidity_level, hardware_id):
     """
     Send humidity message via socket
 
     Parameters
     ----------
+    sock : socket.Socket
     address : tuple
         Address as (str, int) (IP address, UDP port)
     humidity_level : float
     hardware_id : int
         48bit int obtained from uuid.getnode()
     """
-    humidity_dict = {'type': 'humidity', 'value': humidity_level, 'id': hardware_id}
+    humidity_dict = {
+        'type': 'humidity',
+        'value': humidity_level,
+        'id': hardware_id}
 
     message = json.dumps(humidity_dict)
-    send(address, message)
+    sock.sendto(bytes(message, 'utf-8'), address)
+    time.sleep(THINGSPEAK_DELAY_SECS)
 
 
-def send_co2(address, co2_level, hardware_id):
+def send_co2(sock, address, co2_level, hardware_id):
     """
     Send CO2 concentration message via socket
 
     Parameters
     ----------
+    sock : socket.Socket
     address : tuple
         Address as (str, int) (IP address, UDP port)
     co2_level : float
@@ -63,6 +69,39 @@ def send_co2(address, co2_level, hardware_id):
     co2_dict = {'type': 'co2', 'value': co2_level, 'id': hardware_id}
 
     message = json.dumps(co2_dict)
+    sock.sendto(bytes(message, 'utf-8'), address)
+    time.sleep(THINGSPEAK_DELAY_SECS)
+
+
+def send_humidity_update(address, status):
+    """
+    Send Humidity LED update message via socket
+
+    Parameters
+    ----------
+    address : tuple
+        Address as (str, int) (IP address, UDP port)
+    status : str
+    """
+    humidity_update_dict = {'type': 'humidity', 'status': status}
+
+    message = json.dumps(humidity_update_dict)
+    send(address, message)
+
+
+def send_co2_update(address, status):
+    """
+    Send CO2 LED update message via socket
+
+    Parameters
+    ----------
+    address : tuple
+        Address as (str, int) (IP address, UDP port)
+    status : str
+    """
+    co2_update_dict = {'type': 'co2', 'status': status}
+
+    message = json.dumps(co2_update_dict)
     send(address, message)
 
 

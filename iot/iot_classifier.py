@@ -5,11 +5,11 @@ import json
 import time
 import constants as c
 
-# logging  
+# logging
 LOG = "/tmp/logfile.log"
 logging.basicConfig(filename=LOG, filemode="w", level=logging.DEBUG)
 
-# console handler  
+# console handler
 console = logging.StreamHandler()
 console.setLevel(logging.ERROR)
 logging.getLogger("").addHandler(console)
@@ -48,11 +48,12 @@ while True:
         last_check[hardware_id] = current_time
 
         if hardware_id in allowance:
-            allowance[hardware_id] += time_passed * (rate/per)
+            allowance[hardware_id] += time_passed * (rate / per)
         else:
             allowance[hardware_id] = rate
 
-        logging.debug(f'allowance for id: {hardware_id} is {allowance[hardware_id]:.2f}')
+        logging.debug(
+            f'allowance for id: {hardware_id} is {allowance[hardware_id]:.2f}')
 
         if allowance[hardware_id] > rate:
             allowance[hardware_id] = rate  # throttle

@@ -8,5 +8,6 @@ RUN apt-get update && apt-get install -y \
 	iputils-ping \
 	python3 \
 	python3-pip \
+	python3-psycopg2 \
 	python3-requests \
 	tcpdump

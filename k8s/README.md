@@ -83,7 +83,7 @@ Using classifier as an example
 
 1. rebuild image, the build process copies the iot script folder into the image.
    ```bash
-   docker build -t sysc4907_group58/classifier -f dockerfiles/classifier/Dockerfile .
+   docker build -t sysc4907_group58/python-app -f dockerfiles/python-app/Dockerfile .
    ```
 1. roll out the change to the deployment
    ```bash

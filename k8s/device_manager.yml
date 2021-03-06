@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: device-manager
+  labels:
+    app: device-manager
+spec:
+  type: NodePort
+  ports:
+  - port: 3210
+    protocol: UDP
+    nodePort: 32767
+  selector:
+    app: device-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: device-manager
+  name: device-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: device-manager
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: device-manager
+    spec:
+      containers:
+      - image: sysc4907_group58/python-app
+        name: device-manager
+        args: ["python3", "/iot/device_manager.py", "--verbose"]
+        imagePullPolicy: Never
+        resources: {}
+        ports:
+          - containerPort: 3210
+status: {}

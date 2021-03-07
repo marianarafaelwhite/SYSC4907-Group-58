@@ -198,7 +198,7 @@ class HumidityDB(SqliteDB):
 
         self._cursor.execute(
             "create table {} (date text, \
-             time text, humidity float)".format(self._name))
+             time text, id integer, humidity float)".format(self._name))
 
     def add_record(self, record):
         """
@@ -222,14 +222,15 @@ class HumidityDB(SqliteDB):
 
         date = record.get('date', '')
         time = record.get('time', '')
+        id_data = record.get('id', '')
         humidity = record.get('humidity', '')
 
-        if '' in (date, time, humidity):
+        if '' in (date, time, id_data, humidity):
             raise Exception('Invalid HumidityDB record!')
 
         self._cursor.execute(
-            "insert into {} values(?, ?, ?)".format(self._name),
-            (date, time, humidity))
+            "insert into {} values(?, ?, ?, ?)".format(self._name),
+            (date, time, id_data, humidity))
 
     def record_exists(self, record):
         """
@@ -258,13 +259,14 @@ class HumidityDB(SqliteDB):
 
         date = record.get('date', '')
         time = record.get('time', '')
+        id_data = record.get('id', '')
         humidity = record.get('humidity', '')
 
         self._cursor.execute(
             """SELECT count(*) FROM {} WHERE \
-                date == ? and time = ? \
+                date == ? and time = ? and id = ? \
                 and humidity = ?""".format(self._name),
-            (date, time, humidity))
+            (date, time, id_data, humidity))
 
         if self._cursor.fetchone()[FIRST_ROW] == SINGLE_RECORD:
             record_exists = True
@@ -289,6 +291,7 @@ class HumidityDB(SqliteDB):
         for r in rows:
             record = {'date': r['date'],
                       'time': r['time'],
+                      'id': r['id'],
                       'humidity': r['humidity']}
             records.append(record)
 
@@ -340,7 +343,7 @@ class Co2DB(SqliteDB):
 
         self._cursor.execute(
             "create table {} (date text, \
-             time text, co2 int)".format(self._name))
+             time text, id integer, co2 integer)".format(self._name))
 
     def add_record(self, record):
         """
@@ -364,14 +367,15 @@ class Co2DB(SqliteDB):
 
         date = record.get('date', '')
         time = record.get('time', '')
+        id_data = record.get('id', '')
         co2 = record.get('co2', '')
 
-        if '' in (date, time, co2):
+        if '' in (date, time, id_data, co2):
             raise Exception('Invalid Co2DB record!')
 
         self._cursor.execute(
-            "insert into {} values(?, ?, ?)".format(self._name),
-            (date, time, co2))
+            "insert into {} values(?, ?, ?, ?)".format(self._name),
+            (date, time, id_data, co2))
 
     def record_exists(self, record):
         """
@@ -400,13 +404,14 @@ class Co2DB(SqliteDB):
 
         date = record.get('date', '')
         time = record.get('time', '')
+        id_data = record.get('id', '')
         co2 = record.get('co2', '')
 
         self._cursor.execute(
             """SELECT count(*) FROM {} WHERE \
-                date == ? and time = ? \
+                date == ? and time = ? and id = ? \
                 and co2 = ?""".format(self._name),
-            (date, time, co2))
+            (date, time, id_data, co2))
 
         if self._cursor.fetchone()[FIRST_ROW] == SINGLE_RECORD:
             record_exists = True
@@ -431,6 +436,7 @@ class Co2DB(SqliteDB):
         for r in rows:
             record = {'date': r['date'],
                       'time': r['time'],
+                      'id': r['id'],
                       'co2': r['co2']}
             records.append(record)
 

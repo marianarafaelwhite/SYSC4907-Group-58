@@ -44,6 +44,7 @@ class TestHumidityDB(TestCase):
         """
         record = {'date': '2020-11-22',
                   'time': '14:03:17',
+                  'id': '123456789',
                   'humidity': '45.0192727'}
 
         self.__db.create_table()
@@ -84,6 +85,7 @@ class TestCo2DB(TestCase):
         """
         record = {'date': '2020-11-22',
                   'time': '14:03:17',
+                  'id': '123456789',
                   'co2': '412'}
 
         self.__db.create_table()

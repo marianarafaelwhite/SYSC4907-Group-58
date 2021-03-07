@@ -76,24 +76,27 @@ class DataPoller:
         message_dict = eval(message.decode())
         type_data = message_dict.get('type', None)
         value_data = message_dict.get('value', None)
+        id_data = message_dict.get('id', None)
         ip_data = message_dict.get('src_ip', None)
         port_data = message_dict.get('src_port', None)
         address = (ip_data, port_data)
 
         # Unrecognized message, ignore
-        if not type_data or not value_data:
+        if not type_data or not value_data or not id_data:
             logging.error('Unrecognized message. Ignoring')
             return
 
         # Assembly humidity record
         if type_data == 'humidity':
             self.humidity_processing(value_data, address)
-            fields = {c.HUMIDITY_FIELD: value_data}
+            fields = {c.NODE_FIELD: id_data,
+                      c.HUMIDITY_FIELD: value_data}
 
         # Aseembly co2 record
         elif type_data == 'co2':
             self.co2_processing(value_data, address)
-            fields = {c.CO2_FIELD: value_data}
+            fields = {c.NODE_FIELD: id_data,
+                      c.CO2_FIELD: value_data}
 
         # Unrecognized type, ignore
         else:

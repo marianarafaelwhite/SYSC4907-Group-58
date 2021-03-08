@@ -42,8 +42,12 @@ class TestHumidityDB(TestCase):
         """
         Test adding new, good record to DB
         """
+        # Note: mac addr is 48 bit
+        # so testing with something larger than 2^32
+        # 0d4886718345 = 0x123456789
         record = {'date': '2020-11-22',
                   'time': '14:03:17',
+                  'id': '4886718345',
                   'humidity': '45.0192727'}
 
         self.__db.create_table()
@@ -82,8 +86,12 @@ class TestCo2DB(TestCase):
         """
         Test adding new, good record to DB
         """
+        # Note: mac addr is 48 bit
+        # so testing with something larger than 2^32
+        # 0d4886718345 = 0x123456789
         record = {'date': '2020-11-22',
                   'time': '14:03:17',
+                  'id': '4886718345',
                   'co2': '412'}
 
         self.__db.create_table()

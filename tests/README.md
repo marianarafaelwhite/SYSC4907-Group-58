@@ -26,7 +26,7 @@ Run an individual test file
 ```
 pytest tests/test_hardware_emulator.py -v
 ```
-Run an indivudal test case
+Run an individual test case
 ```
 pytest tests/test_hardware_emulator.py::TestHardwareEmulator::test_co2 -v
 ```

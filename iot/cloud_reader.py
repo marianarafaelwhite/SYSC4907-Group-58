@@ -124,6 +124,7 @@ class CloudParser:
         data = {}
         date_data = feed.get('created_at', '')
         date_list = re.split('T|Z', date_data)
+        id_data = feed.get(c.NODE_FIELD, '')
         co2 = feed.get(c.CO2_FIELD, '')
         humidity = feed.get(c.HUMIDITY_FIELD, '')
 
@@ -136,11 +137,13 @@ class CloudParser:
         if co2 and not humidity:
             data = {'date': date_list[0],
                     'time': date_list[1].split('-')[0],
+                    'id': id_data,
                     'co2': co2}
 
         elif humidity and not co2:
             data = {'date': date_list[0],
                     'time': date_list[1].split('-')[0],
+                    'id': id_data,
                     'humidity': humidity}
         else:
             raise Exception('Bad read!')

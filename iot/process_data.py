@@ -18,6 +18,7 @@ import iot_email
 import iot_sender
 import logging
 import argparse
+import json
 
 # logging
 LOG = "/tmp/logfile.log"
@@ -88,13 +89,13 @@ class DataPoller:
 
         # Assembly humidity record
         if type_data == 'humidity':
-            self.humidity_processing(value_data, address)
+            self.humidity_processing(value_data, address, id_data)
             fields = {c.NODE_FIELD: id_data,
                       c.HUMIDITY_FIELD: value_data}
 
         # Aseembly co2 record
         elif type_data == 'co2':
-            self.co2_processing(value_data, address)
+            self.co2_processing(value_data, address, id_data)
             fields = {c.NODE_FIELD: id_data,
                       c.CO2_FIELD: value_data}
 
@@ -114,7 +115,7 @@ class DataPoller:
         else:
             logging.error('Write to cloud was unsuccessful: {}'.format(reason))
 
-    def humidity_processing(self, value, address):
+    def humidity_processing(self, value, address, id_data):
         """
         Further process humidity data
 
@@ -122,6 +123,7 @@ class DataPoller:
         ----------
         value : float
         address : tuple
+        id_data : int
         """
         if value < c.HUMIDITY_THRESHOLD:
             logging.info('Low humidity! Alert user')
@@ -132,7 +134,7 @@ class DataPoller:
 
                 # Send email to defined recipients
                 sender = c.SENDER
-                recipients = self.__recipients
+                recipients = update_recipients_list(self.__recipients, id_data)
                 subject = c.HUMIDITY_SUBJECT
                 content = c.HUMIDITY_CONTENT.format(humidity=value)
                 logging.debug('Sending Humidity warning email to user')
@@ -155,7 +157,7 @@ class DataPoller:
                     logging.debug('Sending Pi a SAFE humidity message')
                     iot_sender.send_humidity_update(address, 'safe')
 
-    def co2_processing(self, value, address):
+    def co2_processing(self, value, address, id_data):
         """
         Further process CO2 data
 
@@ -163,6 +165,7 @@ class DataPoller:
         ----------
         value : int
         address : tuple
+        id_data: int
         """
         if value > c.CO2_THRESHOLD:
             logging.info('High CO2 Concentration level! Alert user')
@@ -173,7 +176,7 @@ class DataPoller:
 
                 # Send email to defined recipients
                 sender = c.SENDER
-                recipients = self.__recipients
+                recipients = update_recipients_list(self.__recipients, id_data)
                 subject = c.CO2_SUBJECT
                 content = c.CO2_CONTENT.format(co2=value)
                 logging.debug('Sending CO2 warning email to user')
@@ -196,6 +199,39 @@ class DataPoller:
                 if address[0] and address[1]:
                     logging.debug('Sending Pi a SAFE CO2 message')
                     iot_sender.send_co2_update(address, 'safe')
+
+
+def update_recipients_list(recipient_list, id_data):
+    """
+    Check whether this device has a notification email address associated
+    If so, append to the list of.
+
+    :param recipient_list: current list of recipients
+    :param id_data: 48-bit mac address
+    :return: updated recipients list
+    """
+
+    email_sock = s.socket(s.AF_INET, s.SOCK_DGRAM)
+    email_sock.settimeout(1)
+    request = json.dumps({'type': 'retrieve', 'device_id': id_data})
+    email_address = ""
+    try:
+        email_sock.sendto(bytes(request, 'utf-8'), (c.DEVICE_MANAGER, 3210))
+        reply, _ = email_sock.recvfrom(1024)
+        reply_json = json.loads(reply)
+        email_address = reply_json['email']
+    except (s.gaierror, s.timeout) as e:
+        logging.error(f'Failed to retrieve email for {id_data}. E:{str(e)}')
+    finally:
+        email_sock.close()
+
+    if len(email_address) != 0:
+        if not recipient_list:
+            recipient_list = [email_address]
+        else:
+            recipient_list.append(email_address)
+
+    return recipient_list
 
 
 def parse_args():
@@ -232,6 +268,9 @@ if __name__ == '__main__':
     args = parse_args()
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format=c.LOGGING_FORMAT, level=logging_level)
+    console = logging.StreamHandler()
+    console.setLevel(logging_level)
+    logging.getLogger("").addHandler(console)
 
     recipients = []
     if args.address:

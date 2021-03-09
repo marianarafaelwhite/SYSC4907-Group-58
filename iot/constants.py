@@ -78,3 +78,4 @@ RECIPIENTS = ['marianarafaelwhite@cmail.carleton.ca']
 EXCESS_MESSAGE_LOGGER = "excess-message-logger"
 APP_CO2 = "app-co2"
 APP_HUMIDITY = "app-humidity"
+DEVICE_MANAGER = "device-manager"

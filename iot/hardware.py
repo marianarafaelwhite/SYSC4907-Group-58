@@ -215,6 +215,7 @@ class ReceiverThread(Thread):
             while True:
                 request, address = self.__sock.recvfrom(1024)
                 parse_msg = json.loads(request.decode('utf-8'))
+                logging.debug('Received {} from {}'.format(parse_msg, address))
                 msg_type = parse_msg['type']
                 msg_status = parse_msg['status']
                 if msg_type == 'humidity' and msg_status == 'safe':

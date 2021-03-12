@@ -50,12 +50,12 @@ TODO:
    
    OR, if using Pi, run the forwarder script to forward traffic to the classifier
    ```bash
-   python3 iot_forwarder.py -v -ip 192.168.49.2 -s 32388 -p 6789
+   python3 iot_forwarder.py -v -ip 192.168.49.2 -s 32388
    ```
 
    Then, on Pi run the hardware script:
    ```bash
-   python3 hardware.py -v -d -ip <IP of Linux environment> -p 6789
+   python3 hardware.py -v -d -ip <IP of Linux environment> -p 7777
    ```
 
    Let's check whether the app behind the classifier is receiving the traffic.

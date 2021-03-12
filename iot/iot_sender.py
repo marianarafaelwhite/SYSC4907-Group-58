@@ -13,6 +13,7 @@ import socket as s
 import time
 import json
 from constants import THINGSPEAK_DELAY_SECS
+import logging
 
 
 def send(address, message):
@@ -49,6 +50,7 @@ def send_humidity(sock, address, humidity_level, hardware_id):
         'id': hardware_id}
 
     message = json.dumps(humidity_dict)
+    logging.debug('Sending {} to {}'.format(message, address))
     sock.sendto(bytes(message, 'utf-8'), address)
     time.sleep(THINGSPEAK_DELAY_SECS)
 
@@ -69,6 +71,7 @@ def send_co2(sock, address, co2_level, hardware_id):
     co2_dict = {'type': 'co2', 'value': co2_level, 'id': hardware_id}
 
     message = json.dumps(co2_dict)
+    logging.debug('Sending {} to {}'.format(message, address))
     sock.sendto(bytes(message, 'utf-8'), address)
     time.sleep(THINGSPEAK_DELAY_SECS)
 
@@ -86,6 +89,7 @@ def send_humidity_update(address, status):
     humidity_update_dict = {'type': 'humidity', 'status': status}
 
     message = json.dumps(humidity_update_dict)
+    logging.debug('Sending {} to {}'.format(message, address))
     send(address, message)
 
 
@@ -102,6 +106,7 @@ def send_co2_update(address, status):
     co2_update_dict = {'type': 'co2', 'status': status}
 
     message = json.dumps(co2_update_dict)
+    logging.debug('Sending {} to {}'.format(message, address))
     send(address, message)
 
 

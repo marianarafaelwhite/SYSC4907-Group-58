@@ -45,7 +45,7 @@ TODO:
    
 1. Send some traffic to the classifier service running on our node.
    ```bash
-   python3 hardware_emulator.py -v -ip 192.168.49.2 -p 32388
+   python3 hardware_emulator.py -v -ip 192.168.49.2 -p 32388 -l "Room 123"
    ```
    
    OR, if using Pi, run the forwarder script to forward traffic to the classifier
@@ -55,7 +55,7 @@ TODO:
 
    Then, on Pi run the hardware script:
    ```bash
-   python3 hardware.py -v -d -ip <IP of Linux environment> -p 7777
+   python3 hardware.py -v -d -ip <IP of Linux environment> -p 7777 -l "Room 123"
    ```
 
    Let's check whether the app behind the classifier is receiving the traffic.

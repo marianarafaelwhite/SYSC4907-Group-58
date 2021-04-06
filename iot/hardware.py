@@ -40,13 +40,14 @@ class Hardware:
     Class for the IoT Hardware
     """
 
-    def __init__(self, humidity=True, co2=True, address=None,
+    def __init__(self, location, humidity=True, co2=True, address=None,
                  humidity_sensor=None, co2_sensor=None, display=False):
         """
         Create humidity & CO2 sensor objects
 
         Parameters
         ----------
+        location : str
         humidity : bool
             True if humidity sensor is to run
         co2 : bool
@@ -62,6 +63,7 @@ class Hardware:
         self.__co2_sensor = co2_sensor
         self.__address = address
         self.__hardware_id = uuid.getnode()
+        self.__location = location
         self.__screen = None
         self.__receiver = None
 
@@ -169,7 +171,8 @@ class Hardware:
                 self.__pi_socket,
                 self.__address,
                 humidity_level,
-                self.__hardware_id)
+                self.__hardware_id,
+                self.__location)
 
     def read_co2(self):
         """
@@ -185,7 +188,8 @@ class Hardware:
                 self.__pi_socket,
                 self.__address,
                 co2_level,
-                self.__hardware_id)
+                self.__hardware_id,
+                self.__location)
 
 
 class ReceiverThread(Thread):
@@ -276,6 +280,13 @@ def parse_args():
                         type=int,
                         help='Default: 7777')
 
+    parser.add_argument('-l',
+                        '--location',
+                        metavar='<location of sensor>',
+                        default='Room 123',
+                        type=str,
+                        help='Default: Room 123')
+
     parser.add_argument('-d',
                         '--display',
                         default=False,
@@ -297,9 +308,20 @@ if __name__ == '__main__':
 
     hw = None
     if args.hardware == 'humidity':
-        hw = Hardware(co2=False, address=addr, display=args.display)
+        hw = Hardware(
+            co2=False,
+            address=addr,
+            location=args.location,
+            display=args.display)
     elif args.hardware == 'co2':
-        hw = Hardware(humidity=False, address=addr, display=args.display)
+        hw = Hardware(
+            humidity=False,
+            address=addr,
+            location=args.location,
+            display=args.display)
     else:
-        hw = Hardware(address=addr, display=args.display)
+        hw = Hardware(
+            address=addr,
+            location=args.location,
+            display=args.display)
     hw.poll_hardware(args.time)

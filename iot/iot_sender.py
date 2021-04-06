@@ -28,10 +28,10 @@ def send(address, message):
     """
     with s.socket(s.AF_INET, s.SOCK_DGRAM) as sock:
         sock.sendto(bytes(message, 'utf-8'), address)
-    time.sleep(THINGSPEAK_DELAY_SECS)
+    time.sleep(2 * THINGSPEAK_DELAY_SECS)
 
 
-def send_humidity(sock, address, humidity_level, hardware_id):
+def send_humidity(sock, address, humidity_level, hardware_id, location):
     """
     Send humidity message via socket
 
@@ -43,11 +43,14 @@ def send_humidity(sock, address, humidity_level, hardware_id):
     humidity_level : float
     hardware_id : int
         48bit int obtained from uuid.getnode()
+    location : str
+        Room description/number
     """
     humidity_dict = {
         'type': 'humidity',
         'value': humidity_level,
-        'id': hardware_id}
+        'id': hardware_id,
+        'location': location}
 
     message = json.dumps(humidity_dict)
     logging.debug('Sending {} to {}'.format(message, address))
@@ -55,7 +58,7 @@ def send_humidity(sock, address, humidity_level, hardware_id):
     time.sleep(THINGSPEAK_DELAY_SECS)
 
 
-def send_co2(sock, address, co2_level, hardware_id):
+def send_co2(sock, address, co2_level, hardware_id, location):
     """
     Send CO2 concentration message via socket
 
@@ -67,8 +70,14 @@ def send_co2(sock, address, co2_level, hardware_id):
     co2_level : float
     hardware_id : int
         48bit int obtained from uuid.getnode()
+    location : str
+        Room description/number
     """
-    co2_dict = {'type': 'co2', 'value': co2_level, 'id': hardware_id}
+    co2_dict = {
+        'type': 'co2',
+        'value': co2_level,
+        'id': hardware_id,
+        'location': location}
 
     message = json.dumps(co2_dict)
     logging.debug('Sending {} to {}'.format(message, address))

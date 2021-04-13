@@ -17,7 +17,7 @@ logging.getLogger("").addHandler(console)
 DB_HOST = "34.71.10.216"
 DB_PORT = 5432
 DB_USER = "device_db_user"
-DB_PW = "0t!^5l1TW^1z&K!!"
+DB_PW = ""
 RECEIVE_PORT = 3210
 
 # PostgreSQL host on GCP 34.71.10.216

@@ -45,7 +45,7 @@ CO2_TABLE = 'co2'
 # Email related
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
-GMAIL_PASSWORD = 'MC&Dx78K'
+GMAIL_PASSWORD = ''
 GMAIL_USERNAME = 'covid.smart.home.alert@gmail.com'
 CO2_SUBJECT = 'COVID Risk: High CO2 levels'
 CO2_CONTENT = """

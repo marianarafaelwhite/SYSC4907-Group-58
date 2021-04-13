@@ -1,19 +1,24 @@
-# SYSC4907: Integrating IoT with SDN/NFV/SFC
+# IoT Management with Container Orchestration
 
-This 4th-year project is part of SYSC 4907 at Carleton University.
-
-## About
-This project aims to investigate and integrate the following emerging technologies:
+This 4th-year project at Carleton University aims to investigate and integrate the following emerging technologies:
 * Internet of Things (IoT)
-* Software-defined Networking (SDN)
-* Network Function Virtualization (NFV)
-* Service Function Chaining (SFC)
+* Container Orchestration
 
-## Roadmap
-* Complete flow support to successfully send messages
-* Define a simple message format
-* Code to interface with IoT hardware
-* IoT emulation script to emulate hardware interaction
-* Program for destination host to send to cloud/text/SMS, etc.
-* Fix directory structure
-* Testing
+The project monitors air quality in an indoor environment to prevent the risk of COVID-19 transmission.
+
+## Features
+The project's system consists of the following components:
+* Device Email Registration Tool
+* CO2 and Humidity Measurements
+* Kubernetes Cluster
+* Classifer
+* Malicious Traffic Logger
+* Device Manager
+* Application Servers
+* Record Storage System
+* Email Notification System
+* LED Alert System
+* Cloud Reader System
+
+## Installation and Usage
+Navigate to the iot and k8s directories for full instructions.

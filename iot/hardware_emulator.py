@@ -29,7 +29,7 @@ class HardwareEmulator:
     Class for IoT Emulation of Hardware
     """
 
-    def __init__(self, hardware_id, humidity=True,
+    def __init__(self, hardware_id, location, humidity=True,
                  co2=True, address=None, display=False):
         """
         Create humidity & co2 reading values
@@ -37,6 +37,7 @@ class HardwareEmulator:
         Parameters
         ----------
         hardware_id : int
+        location : str
         humidity : bool
             True if only humidity sensor is to be emulated
         co2 : bool
@@ -49,6 +50,7 @@ class HardwareEmulator:
         self.__co2 = co2
         self.__address = address
         self.__hardware_id = hardware_id
+        self.__location = location
         self.__display = display
 
         if self.__address:
@@ -99,7 +101,8 @@ class HardwareEmulator:
                     self.__pi_socket,
                     self.__address,
                     humidity_level,
-                    self.__hardware_id)
+                    self.__hardware_id,
+                    self.__location)
 
         # Emulate CO2 sensor levels
         if self.__co2:
@@ -113,7 +116,8 @@ class HardwareEmulator:
                     self.__pi_socket,
                     self.__address,
                     co2_level,
-                    self.__hardware_id)
+                    self.__hardware_id,
+                    self.__location)
 
     def update_display(self):
         """
@@ -274,6 +278,13 @@ def parse_args():
                         type=int,
                         help='Default: 1234567890')
 
+    parser.add_argument('-l',
+                        '--location',
+                        metavar='<location of sensor>',
+                        default='Room 123',
+                        type=str,
+                        help='Default: Room 123')
+
     parser.add_argument('-d',
                         '--display',
                         default=False,
@@ -298,16 +309,19 @@ if __name__ == '__main__':
             co2=False,
             address=addr,
             hardware_id=args.hardware_id,
+            location=args.location,
             display=args.display)
     elif args.hardware == 'co2':
         hw = HardwareEmulator(
             humidity=False,
             address=addr,
             hardware_id=args.hardware_id,
+            location=args.location,
             display=args.display)
     else:
         hw = HardwareEmulator(
             address=addr,
             hardware_id=args.hardware_id,
+            location=args.location,
             display=args.display)
     hw.run_emulation(args.time)

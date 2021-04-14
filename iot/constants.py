@@ -24,6 +24,7 @@ AIR_QUALITY_FEED = '1293661'
 NODE_FIELD = 'field1'
 CO2_FIELD = 'field2'
 HUMIDITY_FIELD = 'field3'
+LOCATION_FIELD = 'field4'
 GOOD_STATUS = 200
 READ_URL = 'https://api.thingspeak.com/channels/' + \
            '{CHANNEL_FEED}/feeds.json?api_key=' + \
@@ -74,7 +75,8 @@ CONTENT_HTML = """
 RECIPIENTS = ['marianarafaelwhite@cmail.carleton.ca']
 
 # hostname of various services
-# remember to change "metadata: name: HOSTNAME" in the Service definition as well
+# remember to change "metadata: name: HOSTNAME" in the Service definition
+# as well
 EXCESS_MESSAGE_LOGGER = "excess-message-logger"
 APP_CO2 = "app-co2"
 APP_HUMIDITY = "app-humidity"

@@ -3,7 +3,7 @@ test_hardware_emulator.py
 """
 from iot.hardware_emulator import HardwareEmulator
 from unittest import TestCase, main
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 
 @patch('iot.hardware_emulator.HardwareEmulator.generate_humidity')
@@ -15,7 +15,10 @@ class TestHardwareEmulator(TestCase):
         Test only running humidity sensor (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator(co2=False, hardware_id=123456789)
+        hw = HardwareEmulator(
+            co2=False,
+            hardware_id=123456789,
+            location='Room 567')
         hw.emulate_data()
         mock_humidity.assert_called_once_with()
         mock_co2.assert_not_called()
@@ -25,7 +28,10 @@ class TestHardwareEmulator(TestCase):
         Test only running CO2 sensor (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator(humidity=False, hardware_id=123456789)
+        hw = HardwareEmulator(
+            humidity=False,
+            hardware_id=123456789,
+            location='Room 567')
         hw.emulate_data()
         mock_humidity.assert_not_called()
         mock_co2.assert_called_once_with()
@@ -35,7 +41,7 @@ class TestHardwareEmulator(TestCase):
         Test running all sensors (HW Mocked)
         To ensure proper order of method calls
         """
-        hw = HardwareEmulator(hardware_id=123456789)
+        hw = HardwareEmulator(hardware_id=123456789, location='Room 567')
         hw.emulate_data()
         mock_humidity.assert_called_once_with()
         mock_co2.assert_called_once_with()

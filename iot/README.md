@@ -34,12 +34,12 @@ sudo apt install sense-hat
 1. Run the script to read the hardware & send to Linux receiver
     ```
     cd iot/
-    ./hardware.py --verbose -ip <ip_address> -p <port>
+    ./hardware.py --verbose -ip <ip_address> -p <port> -l <location>
     ```
 1. Or, run the emulator script
     ```
     cd iot/
-    ./hardware_emulator.py --verbose -ip <ip_address> -p <port>
+    ./hardware_emulator.py --verbose -ip <ip_address> -p <port> -l <location>
     ```
 1. On destination server node, process data received (write to cloud, email, etc.):
     ```
@@ -57,6 +57,6 @@ sudo apt install sense-hat
     ```
 1. Optional: for step 1 or 2, try the following to display received messages:
     ```
-    ./hardware.py --verbose -ip <ip_address> -p <port> -d
-    ./hardware_emulator.py --verbose -ip <ip_address> -p <port> -d
+    ./hardware.py --verbose -ip <ip_address> -p <port> -l <location> -d
+    ./hardware_emulator.py --verbose -ip <ip_address> -p <port> -l <location> -d
     ```
